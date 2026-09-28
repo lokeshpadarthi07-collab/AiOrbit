@@ -47,8 +47,8 @@ function getCategorySlug(value: string): string {
 type SortField = 'valuation' | 'valEmp' | 'name' | 'country' | 'sector' | 'modelsCount' | 'toolsCount' | 'aiNative' | 'profitable';
 type SortDir = 'asc' | 'desc';
 
-const COL_TEMPLATE = "grid-cols-[44px_minmax(180px,2fr)_minmax(90px,1fr)_minmax(90px,1fr)_minmax(90px,1fr)_minmax(75px,0.8fr)_minmax(75px,0.8fr)_minmax(120px,1.2fr)_minmax(65px,0.7fr)_minmax(65px,0.7fr)_44px_44px]";
-const COL_MIN_WIDTH = "min-w-[1050px]";
+const COL_TEMPLATE = "grid-cols-[56px_minmax(180px,2fr)_minmax(90px,1fr)_minmax(90px,1fr)_minmax(90px,1fr)_minmax(75px,0.8fr)_minmax(75px,0.8fr)_minmax(120px,1.2fr)_minmax(65px,0.7fr)_minmax(65px,0.7fr)_44px_44px]";
+const COL_MIN_WIDTH = "min-w-[1070px]";
 
 function formatCompanyName(name: string): string {
   if (!name) return "";
@@ -254,7 +254,7 @@ function LogoCell({ name, logoUrl, company }: { name: string; logoUrl: string | 
     const gradient = bgColors[colorIndex];
 
     return (
-      <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-[11px] font-black text-white shadow-inner border border-white/20 select-none`}>
+      <div className={`flex h-full w-full items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-[13px] font-black text-white shadow-inner border border-white/20 select-none`}>
         {initials}
       </div>
     );
@@ -264,7 +264,7 @@ function LogoCell({ name, logoUrl, company }: { name: string; logoUrl: string | 
     <img
       src={currentSrc}
       alt={cleanName}
-      className="h-8 w-8 object-contain rounded-md"
+      className="h-full w-full object-contain rounded-md"
       onError={() => setFailedCount((prev) => prev + 1)}
     />
   );
@@ -414,7 +414,7 @@ function CompanyRow({
       {/* Col 1: Logo */}
       <div
         data-logo="true"
-        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white transition-all duration-200"
+        className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#232326]/60 bg-white transition-all duration-200 p-1 shadow-sm"
       >
         <LogoCell name={cleanName} logoUrl={logoSrc} company={company} />
       </div>

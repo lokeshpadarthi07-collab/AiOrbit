@@ -273,11 +273,11 @@ export function CompanyDetailClient() {
     <>
       <div className="p-4 sm:p-6">
         <div className="flex flex-col items-center text-center mb-4 sm:mb-6">
-          <div className="h-28 w-28 sm:h-48 sm:w-48 lg:h-44 lg:w-44 rounded-[24px] sm:rounded-[30px] bg-[#141418] border border-[#26262B] flex items-center justify-center overflow-hidden p-2 shadow-lg mb-4 sm:mb-6">
+          <div className="h-36 w-36 sm:h-52 sm:w-52 lg:h-48 lg:w-48 rounded-[26px] sm:rounded-[32px] bg-[#141418] border border-[#26262B] flex items-center justify-center overflow-hidden p-2.5 sm:p-3 shadow-lg mb-4 sm:mb-6">
             {logoSrc ? (
-              <img src={logoSrc} alt={cleanName} className="object-contain w-full h-full rounded-[18px] sm:rounded-[24px]" />
+              <img src={logoSrc} alt={cleanName} className="object-contain w-full h-full rounded-[20px] sm:rounded-[26px]" />
             ) : (
-              <span className="text-4xl sm:text-5xl font-black text-white">{cleanName.charAt(0)}</span>
+              <span className="text-5xl sm:text-6xl font-black text-white">{cleanName.charAt(0)}</span>
             )}
           </div>
           <div className="min-w-0 flex flex-col items-center">

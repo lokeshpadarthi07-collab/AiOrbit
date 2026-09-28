@@ -36,7 +36,7 @@ export default function CompanyProfileModal({ company, isOpen, onClose }) {
         <div className="flex items-start justify-between pb-6 border-b border-[#232326]">
           <div className="flex items-start gap-4">
             <div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xl border border-white/10 shrink-0 font-mono shadow-md"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center font-bold text-2xl sm:text-3xl border border-white/10 shrink-0 font-mono shadow-md"
               style={{ backgroundColor: `${company.logoColor}20`, color: company.logoColor }}
             >
               {company.logoText?.slice(0, 3) || company.name.slice(0, 3)}

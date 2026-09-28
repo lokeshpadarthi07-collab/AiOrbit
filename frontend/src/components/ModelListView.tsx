@@ -534,22 +534,22 @@ function ModelRow({
 
       {/* Mobile: keep the first column (logo + model name) fixed while the rest scrolls. */}
       <div className="sticky left-0 z-20 flex h-full min-w-0 items-center gap-2 bg-[#000000] pr-2 shadow-[10px_0_10px_-10px_rgba(0,0,0,0.6)] transition-colors group-hover:bg-[#18181C] md:hidden">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
           {companyLogo && !logoFailed ? (
             <img
               src={companyLogo}
               alt={`${companyName} logo`}
-              width={28}
-              height={28}
+              width={32}
+              height={32}
               loading="lazy"
               decoding="async"
-              className="h-7 w-7 object-contain"
+              className="h-full w-full object-contain"
               onError={() => setLogoFailed(true)}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
+              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
@@ -572,22 +572,22 @@ function ModelRow({
 
       {/* Desktop: the provider logo belongs to the first column beside the model. */}
       <div className="hidden min-w-0 items-center gap-2 pr-2 md:flex">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
           {companyLogo && !logoFailed ? (
             <img
               src={companyLogo}
               alt={`${companyName} logo`}
-              width={28}
-              height={28}
+              width={32}
+              height={32}
               loading="lazy"
               decoding="async"
-              className="h-7 w-7 object-contain"
+              className="h-full w-full object-contain"
               onError={() => setLogoFailed(true)}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
+              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>

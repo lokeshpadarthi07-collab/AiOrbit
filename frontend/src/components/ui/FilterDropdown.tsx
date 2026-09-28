@@ -224,12 +224,12 @@ export function FilterDropdown({
                   : "text-[#A1A1AA] hover:text-white hover:bg-[#18181C]/40"
               }`}
             >
-              <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
                 {logoUrl && (
                   <img
                     src={logoUrl}
                     alt={`${item} logo`}
-                    className="h-4 w-4 rounded-[2px] object-cover shrink-0 bg-neutral-900 border border-white/10"
+                    className="h-6 w-6 rounded-[4px] object-cover shrink-0 bg-neutral-900 border border-white/10"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}

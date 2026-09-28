@@ -110,12 +110,12 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
         </div>
 
         {/* Column 3: Company / Owner */}
-        <div className="min-w-0 flex items-center gap-[6px] text-[13px] text-[#A1A1AA] font-semibold hidden md:flex text-left">
+        <div className="min-w-0 flex items-center gap-[8px] text-[13px] text-[#A1A1AA] font-semibold hidden md:flex text-left">
           {currentSrc && !imgFailed ? (
             <img
               src={currentSrc}
               alt={`${repo.owner} logo`}
-              className="h-[20px] w-[20px] rounded-[3px] shrink-0 object-cover bg-neutral-900 border border-white/10"
+              className="h-[26px] w-[26px] rounded-[5px] shrink-0 object-cover bg-neutral-900 border border-white/10"
               onError={() => {
                 if (currentSrc !== fallbackAvatarUrl && fallbackAvatarUrl) {
                   setCurrentSrc(fallbackAvatarUrl);
@@ -125,7 +125,7 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
               }}
             />
           ) : (
-            <div className="h-[20px] w-[20px] rounded-[3px] shrink-0 bg-neutral-800 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">
+            <div className="h-[26px] w-[26px] rounded-[5px] shrink-0 bg-neutral-800 border border-white/10 flex items-center justify-center text-[11px] font-black text-white">
               {repo.owner ? repo.owner.charAt(0).toUpperCase() : "R"}
             </div>
           )}
@@ -205,7 +205,7 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
               <img
                 src={currentSrc}
                 alt={`${repo.owner} logo`}
-                className="h-[16px] w-[16px] rounded-[2px] shrink-0 object-cover bg-neutral-900 border border-white/10"
+                className="h-[20px] w-[20px] rounded-[4px] shrink-0 object-cover bg-neutral-900 border border-white/10"
                 onError={() => {
                   if (currentSrc !== fallbackAvatarUrl && fallbackAvatarUrl) {
                     setCurrentSrc(fallbackAvatarUrl);

@@ -852,8 +852,8 @@ export function ToolDetailClient() {
                 </h3>
                 <div className="flex items-center gap-3">
                   {tool.company.logoUrl && (
-                    <div className="h-9 w-9 rounded-lg border border-[#232326] bg-white flex items-center justify-center overflow-hidden p-1">
-                      <Image src={tool.company.logoUrl} alt={tool.company.name} width={28} height={28} className="object-contain" />
+                    <div className="h-12 w-12 rounded-xl border border-[#232326] bg-white flex items-center justify-center overflow-hidden p-1.5 shadow-sm shrink-0">
+                      <Image src={tool.company.logoUrl} alt={tool.company.name} width={38} height={38} className="object-contain" />
                     </div>
                   )}
                   <div>
