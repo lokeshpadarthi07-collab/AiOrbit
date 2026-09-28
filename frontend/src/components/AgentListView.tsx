@@ -53,20 +53,33 @@ function LogoCell({
   logoUrl?: string | null;
 }) {
   const [failed, setFailed] = useState(false);
+  const cleanName = (name || "").trim();
 
   if (!logoUrl || failed) {
+    const initials = cleanName.slice(0, 2).toUpperCase() || "AG";
+    const bgColors = [
+      "from-[#3b82f6] to-[#1d4ed8]",
+      "from-[#a855f7] to-[#6b21a8]",
+      "from-[#ec4899] to-[#be185d]",
+      "from-[#10b981] to-[#047857]",
+      "from-[#f59e0b] to-[#b45309]",
+      "from-[#06b6d4] to-[#0e7490]",
+    ];
+    const colorIndex = (cleanName.charCodeAt(0) || 0) % bgColors.length;
+    const gradient = bgColors[colorIndex];
+
     return (
-      <span className="text-xs font-bold text-neutral-900">
-        {(name || "?").trim().charAt(0).toUpperCase()}
-      </span>
+      <div className={`flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-[9px] md:text-[11px] font-black text-white shadow-inner border border-white/20 select-none`}>
+        {initials}
+      </div>
     );
   }
 
   return (
     <img
       src={logoUrl}
-      alt={name || "Agent"}
-      className="h-6 w-6 md:h-8 md:w-8 object-contain"
+      alt={cleanName || "Agent"}
+      className="h-6 w-6 md:h-8 md:w-8 object-contain rounded-md"
       onError={() => setFailed(true)}
     />
   );

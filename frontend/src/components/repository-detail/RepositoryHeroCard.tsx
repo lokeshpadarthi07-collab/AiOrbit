@@ -35,7 +35,16 @@ const getRelativeTime = (dateStr?: string | null) => {
 };
 
 export function RepositoryHeroCard({ repo }: RepositoryHeroCardProps) {
-  const avatarUrl = repo.logoUrl || repo.ownerAvatarUrl;
+  const primaryAvatarUrl = repo.logoUrl || repo.ownerAvatarUrl;
+  const fallbackAvatarUrl = repo.owner ? `https://github.com/${repo.owner}.png` : null;
+  const [imgFailed, setImgFailed] = React.useState(false);
+  const [currentSrc, setCurrentSrc] = React.useState(primaryAvatarUrl || fallbackAvatarUrl);
+
+  React.useEffect(() => {
+    setImgFailed(false);
+    setCurrentSrc(primaryAvatarUrl || fallbackAvatarUrl);
+  }, [primaryAvatarUrl, fallbackAvatarUrl]);
+
   const updateHours = getRelativeTime(repo.syncedAt) || getRelativeTime(repo.githubCreatedAt) || "—";
   const forksCount = repo.forks !== undefined && repo.forks !== null ? repo.forks : 0;
 
@@ -46,15 +55,22 @@ export function RepositoryHeroCard({ repo }: RepositoryHeroCardProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0 flex-1">
           {/* Logo Container */}
           <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-neutral-950 p-2 shadow-xl self-start">
-            {avatarUrl ? (
+            {currentSrc && !imgFailed ? (
               <img
-                src={avatarUrl}
+                src={currentSrc}
                 alt={`${repo.owner} logo`}
-                className="h-full w-full object-contain"
+                className="h-full w-full object-contain rounded-lg"
+                onError={() => {
+                  if (currentSrc !== fallbackAvatarUrl && fallbackAvatarUrl) {
+                    setCurrentSrc(fallbackAvatarUrl);
+                  } else {
+                    setImgFailed(true);
+                  }
+                }}
               />
             ) : (
               <span className="text-2xl font-bold text-white select-none">
-                {repo.owner.charAt(0).toUpperCase()}
+                {repo.owner ? repo.owner.charAt(0).toUpperCase() : "R"}
               </span>
             )}
           </div>

@@ -59,7 +59,16 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
   const sizeText = `${(repo.stars / 210 + 1.2).toFixed(1)} MB`;
   
   const licenseText = repo.license || null;
-  const avatarUrl = repo.logoUrl || repo.ownerAvatarUrl;
+  const primaryAvatarUrl = repo.logoUrl || repo.ownerAvatarUrl;
+  const fallbackAvatarUrl = repo.owner ? `https://github.com/${repo.owner}.png` : null;
+  const [imgFailed, setImgFailed] = React.useState(false);
+  const [currentSrc, setCurrentSrc] = React.useState(primaryAvatarUrl || fallbackAvatarUrl);
+
+  React.useEffect(() => {
+    setImgFailed(false);
+    setCurrentSrc(primaryAvatarUrl || fallbackAvatarUrl);
+  }, [primaryAvatarUrl, fallbackAvatarUrl]);
+
   const updateHours = getRelativeTime(repo.syncedAt) || getRelativeTime(repo.githubCreatedAt) || "—";
 
   const repoSlug = repo.slug || repo.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -102,15 +111,22 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
 
         {/* Column 3: Company / Owner */}
         <div className="min-w-0 flex items-center gap-[6px] text-[13px] text-[#A1A1AA] font-semibold hidden md:flex text-left">
-          {avatarUrl ? (
+          {currentSrc && !imgFailed ? (
             <img
-              src={avatarUrl}
+              src={currentSrc}
               alt={`${repo.owner} logo`}
-              className="h-[20px] w-[20px] rounded-[3px] shrink-0 object-cover"
+              className="h-[20px] w-[20px] rounded-[3px] shrink-0 object-cover bg-neutral-900 border border-white/10"
+              onError={() => {
+                if (currentSrc !== fallbackAvatarUrl && fallbackAvatarUrl) {
+                  setCurrentSrc(fallbackAvatarUrl);
+                } else {
+                  setImgFailed(true);
+                }
+              }}
             />
           ) : (
-            <div className="h-[20px] w-[20px] rounded-[3px] shrink-0 bg-neutral-800 flex items-center justify-center text-[10px] font-black text-white">
-              {repo.owner.charAt(0).toUpperCase()}
+            <div className="h-[20px] w-[20px] rounded-[3px] shrink-0 bg-neutral-800 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">
+              {repo.owner ? repo.owner.charAt(0).toUpperCase() : "R"}
             </div>
           )}
           <span className="truncate">{repo.owner}</span>
@@ -183,10 +199,24 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
         className="flex sm:hidden p-[12px] bg-transparent hover:bg-white/[0.02] transition-colors w-full focus-visible:bg-white/[0.02] focus-visible:outline-none justify-between items-center gap-[10px] border-b border-white/[0.06] last:border-b-0 cursor-pointer"
       >
         <div className="flex-1 min-w-0">
-          {/* Row 1: Title & Owner */}
-          <div className="flex items-baseline min-w-0">
+          {/* Row 1: Title & Owner with Logo */}
+          <div className="flex items-center min-w-0 gap-1.5">
+            {currentSrc && !imgFailed && (
+              <img
+                src={currentSrc}
+                alt={`${repo.owner} logo`}
+                className="h-[16px] w-[16px] rounded-[2px] shrink-0 object-cover bg-neutral-900 border border-white/10"
+                onError={() => {
+                  if (currentSrc !== fallbackAvatarUrl && fallbackAvatarUrl) {
+                    setCurrentSrc(fallbackAvatarUrl);
+                  } else {
+                    setImgFailed(true);
+                  }
+                }}
+              />
+            )}
             <RepositoryTitle name={repo.name} />
-            <span className="text-[13px] text-[#71717A] ml-2 shrink-0">by {repo.owner}</span>
+            <span className="text-[12px] text-[#71717A] shrink-0">by {repo.owner}</span>
           </div>
 
           {/* Row 2: Stats Inline Bar */}

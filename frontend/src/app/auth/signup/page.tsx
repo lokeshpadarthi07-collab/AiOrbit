@@ -12,7 +12,7 @@ import User from 'lucide-react/dist/esm/icons/user';
 import MailCheck from 'lucide-react/dist/esm/icons/mail-check';
 import { toast } from 'sonner';
 import { AuthRightPanel } from '@/components/auth/AuthRightPanel';
-import { API_URL } from '@/lib/api';
+import { API_URL, safeFetch } from '@/lib/api';
 
 function SignUpForm() {
   const searchParams = useSearchParams();
@@ -35,7 +35,7 @@ function SignUpForm() {
   async function handleResend() {
     setResendLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/resend-verification`, {
+      const res = await safeFetch(`${API_URL}/api/auth/resend-verification`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email }),
@@ -44,6 +44,8 @@ function SignUpForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) toast.error(data.error || 'Failed to resend.');
       else toast.success(data.message || 'Verification email resent!');
+    } catch {
+      toast.error('Failed to resend verification email.');
     } finally {
       setResendLoading(false);
     }
@@ -54,7 +56,7 @@ function SignUpForm() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/auth/signup`, {
+      const res = await safeFetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -64,7 +66,7 @@ function SignUpForm() {
       if (!res.ok) setError(data.error || 'Failed to create account.');
       else setSuccess(true);
     } catch {
-      setError('An error occurred. Please try again.');
+      setError('Unable to connect to sign up service. Please try again.');
     } finally {
       setLoading(false);
     }

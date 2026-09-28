@@ -15,6 +15,7 @@ interface FilterDropdownProps {
   id?: string;
   searchAliases?: Record<string, string[]>;
   searchKeys?: Record<string, string>;
+  itemLogos?: Record<string, string>;
 }
 
 export function FilterDropdown({
@@ -29,6 +30,7 @@ export function FilterDropdown({
   id,
   searchAliases,
   searchKeys,
+  itemLogos,
 }: FilterDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -205,25 +207,40 @@ export function FilterDropdown({
         </button>
 
         {/* Dynamic items list */}
-        {visibleItems.map(([item, count]) => (
-          <button
-            key={item}
-            onClick={() => {
-              onSelectItem(item);
-              onClose();
-            }}
-            role="option"
-            aria-selected={selectedItem === item}
-            className={`w-full text-left px-2.5 py-1.5 text-xs rounded transition-colors flex justify-between items-center font-medium focus:outline-none focus:bg-neutral-800 ${
-              selectedItem === item
-                ? "text-white bg-[#18181C]"
-                : "text-[#A1A1AA] hover:text-white hover:bg-[#18181C]/40"
-            }`}
-          >
-            <span>{item}</span>
-            <span className="text-[10px] text-[#71717A] font-mono">({count})</span>
-          </button>
-        ))}
+        {visibleItems.map(([item, count]) => {
+          const logoUrl = itemLogos ? itemLogos[item] : undefined;
+          return (
+            <button
+              key={item}
+              onClick={() => {
+                onSelectItem(item);
+                onClose();
+              }}
+              role="option"
+              aria-selected={selectedItem === item}
+              className={`w-full text-left px-2.5 py-1.5 text-xs rounded transition-colors flex justify-between items-center font-medium focus:outline-none focus:bg-neutral-800 ${
+                selectedItem === item
+                  ? "text-white bg-[#18181C]"
+                  : "text-[#A1A1AA] hover:text-white hover:bg-[#18181C]/40"
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                {logoUrl && (
+                  <img
+                    src={logoUrl}
+                    alt={`${item} logo`}
+                    className="h-4 w-4 rounded-[2px] object-cover shrink-0 bg-neutral-900 border border-white/10"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                )}
+                <span className="truncate">{item}</span>
+              </div>
+              <span className="text-[10px] text-[#71717A] font-mono shrink-0">({count})</span>
+            </button>
+          );
+        })}
 
         {filteredItems.length === 0 && (
           <div className="text-center py-4 text-xs text-[#71717A]">

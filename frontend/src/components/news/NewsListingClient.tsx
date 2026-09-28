@@ -8,7 +8,7 @@ import { TopicChip } from "./TopicChip";
 import { NewsTable, NewsTableEmpty, NewsTableSkeleton } from "./NewsTable";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
-import { API_URL } from "@/lib/api";
+import { API_URL, cachedFetchJson } from "@/lib/api";
 import { getClientId } from "@/lib/clientId";
 import { applySearch, sortArticles } from "@/lib/news/news";
 import type { NewsArticle, NewsCategory, NewsFilterChip, NewsSource } from "@/types/news";
@@ -132,12 +132,21 @@ export function NewsListingClient({ category, initialTopic }: NewsListingClientP
     setInitialError(false);
     try {
       const clientId = getClientId();
-      const res = await fetch(`${API_URL}/api/news${clientId ? `?clientId=${encodeURIComponent(clientId)}` : ""}`);
-      if (!res.ok) throw new Error(String(res.status));
-      const json: NewsListingResponse = await res.json();
-      setArticles(json.articles || []);
-      setSources(json.sources || {});
-      setCategories(json.categories || []);
+      const primaryUrl = `${API_URL}/api/news${clientId ? `?clientId=${encodeURIComponent(clientId)}` : ""}`;
+      let json = await cachedFetchJson<NewsListingResponse | null>(primaryUrl, null, { ttlMs: 5 * 60 * 1000 });
+
+      if (!json || !json.articles || json.articles.length === 0) {
+        const prodUrl = `https://ai-orbit.palamrendra-pm.workers.dev/api/news${clientId ? `?clientId=${encodeURIComponent(clientId)}` : ""}`;
+        json = await cachedFetchJson<NewsListingResponse | null>(prodUrl, null, { ttlMs: 5 * 60 * 1000 });
+      }
+
+      if (json && json.articles && json.articles.length > 0) {
+        setArticles(json.articles);
+        setSources(json.sources || {});
+        setCategories(json.categories || []);
+      } else {
+        setInitialError(true);
+      }
     } catch {
       setInitialError(true);
     } finally {

@@ -33,6 +33,7 @@ interface RepositoryTableProps {
   onCloseRepoFilter: () => void;
   companySearchAliases?: Record<string, string[]>;
   companySearchKeys?: Record<string, string>;
+  companyLogos?: Record<string, string>;
 }
 
 export function RepositoryTable({
@@ -63,6 +64,7 @@ export function RepositoryTable({
   onCloseRepoFilter,
   companySearchAliases,
   companySearchKeys,
+  companyLogos,
 }: RepositoryTableProps) {
   return (
     <div 
@@ -129,6 +131,7 @@ export function RepositoryTable({
               id="company-filter-dropdown"
               searchAliases={companySearchAliases}
               searchKeys={companySearchKeys}
+              itemLogos={companyLogos}
             />
           </div>
 

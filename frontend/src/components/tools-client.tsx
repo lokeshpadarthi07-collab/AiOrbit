@@ -7,7 +7,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ToolListView } from "@/components/ToolListView";
 import { BusinessToolGrid } from "@/components/BusinessToolGrid";
 import { Pagination } from "@/components/Pagination";
-import { API_URL } from "@/lib/api";
+import { API_URL, cachedFetchJson } from "@/lib/api";
 import type { SortOption } from "@/lib/types";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import {
@@ -371,9 +371,7 @@ export function ToolsClient({
           : `${API_URL}/api/v1/tools`;
 
     
-      const res = await fetch(`${endpoint}?${query.toString()}`);
-      if (!res.ok) return { tools: [], totalPages: 1 };
-      return res.json();
+      return cachedFetchJson(`${endpoint}?${query.toString()}`, { tools: [], totalPages: 1 }, { ttlMs: 15 * 60 * 1000 });
     },
     placeholderData: keepPreviousData,
     staleTime: 30 * 1000,

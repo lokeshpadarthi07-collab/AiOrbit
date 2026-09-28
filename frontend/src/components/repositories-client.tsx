@@ -179,6 +179,16 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
     return keys;
   }, [owners]);
 
+  const companyLogos = React.useMemo(() => {
+    const logos: Record<string, string> = {};
+    owners.forEach((o) => {
+      const name = o.displayName || o.owner;
+      if (/^\d+$/.test(name)) return;
+      logos[name] = o.logoUrl || `https://github.com/${o.owner}.png`;
+    });
+    return logos;
+  }, [owners]);
+
   // Filter repositories by name (unsupported filters stay client-side)
   const nameFilteredRepos = React.useMemo(() => {
     if (!activeRepoSearch) return repos;
@@ -326,6 +336,7 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
               onSelectCompany={handleSelectCompany}
               companyCounts={companyCounts}
               companySearchKeys={companySearchKeys}
+              companyLogos={companyLogos}
               totalCount={total}
               isLicenseDropdownOpen={isLicenseDropdownOpen}
               onToggleLicenseDropdown={() => setIsLicenseDropdownOpen(prev => !prev)}
@@ -380,6 +391,7 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
               onSelectCompany={handleSelectCompany}
               companyCounts={companyCounts}
               companySearchKeys={companySearchKeys}
+              companyLogos={companyLogos}
               totalCount={total}
               isLicenseDropdownOpen={isLicenseDropdownOpen}
               onToggleLicenseDropdown={() => setIsLicenseDropdownOpen(prev => !prev)}

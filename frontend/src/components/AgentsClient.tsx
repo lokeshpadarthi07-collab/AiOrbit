@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 import { AgentListView } from "@/components/AgentListView";
-import { API_URL } from "@/lib/api";
+import { API_URL, cachedFetchJson } from "@/lib/api";
 
 type AgentCategory = {
   name: string;
@@ -46,11 +46,7 @@ export function AgentsClient() {
   const { data: categoriesData } = useQuery<AgentCategory[]>({
     queryKey: ["agent-categories"],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/v1/agents/categories`);
-
-      if (!res.ok) return [];
-
-      return res.json();
+      return cachedFetchJson<AgentCategory[]>(`${API_URL}/api/v1/agents/categories`, [], { ttlMs: 10 * 60 * 1000 });
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -94,15 +90,8 @@ export function AgentsClient() {
       params.set("page", String(currentPage));
       params.set("limit", "200");
 
-      const res = await fetch(
-        `${API_URL}/api/v1/agents?${params.toString()}`
-      );
-
-      if (!res.ok) {
-        throw new Error(`Failed to load agents (${res.status})`);
-      }
-
-      return res.json();
+      const url = `${API_URL}/api/v1/agents?${params.toString()}`;
+      return cachedFetchJson<AgentsResponse>(url, { tools: [], totalPages: 1 }, { ttlMs: 15 * 60 * 1000 });
     },
 
     placeholderData: keepPreviousData,

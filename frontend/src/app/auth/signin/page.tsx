@@ -9,7 +9,7 @@ import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 import Mail from 'lucide-react/dist/esm/icons/mail';
 import Lock from 'lucide-react/dist/esm/icons/lock';
 import { AuthRightPanel } from '@/components/auth/AuthRightPanel';
-import { API_URL } from '@/lib/api';
+import { API_URL, safeFetch } from '@/lib/api';
 
 function SignInForm() {
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ function SignInForm() {
     setLoadingEmail(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await safeFetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -48,7 +48,7 @@ function SignInForm() {
         window.location.href = data.user?.role?.toUpperCase() === 'ADMIN' ? '/admin' : '/dashboard';
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setError('Unable to connect to sign in service. Please check your credentials or network.');
     } finally {
       setLoadingEmail(false);
     }

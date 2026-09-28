@@ -1,4 +1,4 @@
-﻿import { cachedFetchJson, prefetchUrl, setInCache, getFromCache } from "./api-cache";
+import { cachedFetchJson, prefetchUrl, setInCache, getFromCache } from "./api-cache";
 export { cachedFetchJson, prefetchUrl, setInCache, getFromCache };
 
 /**
@@ -28,6 +28,29 @@ function resolveApiUrl(): string {
 
 /** Used by the client components (CommentBox, PublisherIcon, SaveButton, VoteButtons). */
 export const API_URL = resolveApiUrl();
+
+export async function safeFetch(url: string | URL, init?: RequestInit): Promise<Response> {
+  const urlStr = url.toString();
+  try {
+    const res = await fetch(urlStr, init);
+    if (!res.ok && urlStr.includes(":8787")) {
+      const prodUrl = urlStr.replace(/https?:\/\/(localhost|127\.0\.0\.1):8787/, "https://ai-orbit.palamrendra-pm.workers.dev");
+      try {
+        const prodRes = await fetch(prodUrl, init);
+        if (prodRes.ok) return prodRes;
+      } catch {}
+    }
+    return res;
+  } catch (err) {
+    if (urlStr.includes(":8787")) {
+      const prodUrl = urlStr.replace(/https?:\/\/(localhost|127\.0\.0\.1):8787/, "https://ai-orbit.palamrendra-pm.workers.dev");
+      try {
+        return await fetch(prodUrl, init);
+      } catch {}
+    }
+    throw err;
+  }
+}
 
 export async function fetchJsonSafe<T>(url: string | URL, fallback: T): Promise<T> {
   return cachedFetchJson<T>(url, fallback, { ttlMs: 15 * 60 * 1000 });

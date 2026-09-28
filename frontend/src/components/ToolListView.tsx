@@ -158,15 +158,33 @@ function SortIcon({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
 
 function LogoCell({ name, logoUrl }: { name?: string; logoUrl?: string | null }) {
   const [failed, setFailed] = React.useState(false);
+  const cleanName = (name || "").trim();
+
   if (!logoUrl || failed) {
-    const initial = (name || "").trim().charAt(0).toUpperCase() || "?";
-    return <span className="text-[10px] md:text-xs font-bold text-neutral-900">{initial}</span>;
+    const initials = cleanName.slice(0, 2).toUpperCase() || "AI";
+    const bgColors = [
+      "from-[#3b82f6] to-[#1d4ed8]",
+      "from-[#a855f7] to-[#6b21a8]",
+      "from-[#ec4899] to-[#be185d]",
+      "from-[#10b981] to-[#047857]",
+      "from-[#f59e0b] to-[#b45309]",
+      "from-[#06b6d4] to-[#0e7490]",
+    ];
+    const colorIndex = (cleanName.charCodeAt(0) || 0) % bgColors.length;
+    const gradient = bgColors[colorIndex];
+
+    return (
+      <div className={`flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-[9px] md:text-[11px] font-black text-white shadow-inner border border-white/20 select-none`}>
+        {initials}
+      </div>
+    );
   }
+
   return (
     <img
       src={logoUrl}
-      alt={name || "Tool"}
-      className="h-6 w-6 md:h-8 md:w-8 object-contain"
+      alt={cleanName || "Tool"}
+      className="h-6 w-6 md:h-8 md:w-8 object-contain rounded-md"
       onError={() => setFailed(true)}
     />
   );
