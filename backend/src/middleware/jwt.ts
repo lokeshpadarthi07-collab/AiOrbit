@@ -1,0 +1,83 @@
+import type { Context, Next } from 'hono'
+
+interface JwtUserPayload {
+  id: string;
+  [key: string]: unknown;
+}
+import { getCookie } from 'hono/cookie'
+import { verify } from 'hono/jwt'
+import { getPrisma } from '../lib/prisma.js'
+
+export const jwtMiddleware = async (c: Context, next: Next) => {
+  const token = getCookie(c, 'auth_token'); console.log('Received cookies:', c.req.header('cookie'));
+  
+  if (!token) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  try {
+    const jwtSecret = (c.env as Record<string, string | undefined>)?.JWT_SECRET || process.env.JWT_SECRET || 'aiorbit-jwt-secret-key-2026';
+    const decoded = await verify(token, jwtSecret, 'HS256');
+    c.set('user', decoded);
+    await next()
+  } catch (_error) { console.error('JWT Verification Failed:', _error);
+    return c.json({ error: 'Invalid or expired token' }, 401)
+  }
+}
+
+export const adminMiddleware = async (c: Context, next: Next) => {
+  const token = getCookie(c, 'auth_token');
+  
+  if (!token) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const jwtSecret = (c.env as Record<string, string | undefined>)?.JWT_SECRET || process.env.JWT_SECRET || 'aiorbit-jwt-secret-key-2026';
+    const decodedUser = await verify(token, jwtSecret, 'HS256') as JwtUserPayload;
+    c.set('user', decodedUser);
+
+    if (!decodedUser || !decodedUser.id) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const prisma = getPrisma(c.env);
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: decodedUser.id },
+      select: { role: true, status: true }
+    });
+
+    if (!dbUser) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    if (dbUser.status === 'BLOCKED') {
+      return c.json({ error: 'Your account has been blocked' }, 403);
+    }
+
+    if (dbUser.role !== 'ADMIN') {
+      return c.json({ error: 'Forbidden: Admin access required' }, 403);
+    }
+
+    await next();
+  } catch (_error) {
+    return c.json({ error: 'Invalid token or admin verification failed' }, 401);
+  }
+}
+
+export const optionalJwtMiddleware = async (c: Context, next: Next) => {
+  const token = getCookie(c, 'auth_token');
+  
+  if (token) {
+    try {
+      const jwtSecret = (c.env as Record<string, string | undefined>)?.JWT_SECRET || process.env.JWT_SECRET || 'aiorbit-jwt-secret-key-2026';
+      const decoded = await verify(token, jwtSecret, 'HS256');
+      c.set('user', decoded);
+    } catch (_error) {
+      // Ignore invalid token
+    }
+  }
+  
+  await next();
+}
