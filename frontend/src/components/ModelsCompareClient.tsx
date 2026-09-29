@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { fetchModelsCompare } from "@/lib/api";
 import type { ModelDetail } from "@/lib/types";
 import { formatModelType } from "@/lib/types";
+import { resolveProviderLogo } from "@/lib/model-logos";
 
 const ROWS: { key: string; label: string; get: (m: ModelDetail) => string }[] = [
   {
@@ -110,18 +111,28 @@ export function ModelsCompareClient() {
                   <th className="px-4 py-3 text-[9.5px] font-mono font-semibold tracking-wider text-[#71717A] w-40">
                     SPEC
                   </th>
-                  {models.map((m) =>
-                    m ? (
+                  {models.map((m) => {
+                    if (!m) return null;
+                    const pLogo = resolveProviderLogo(
+                      m.provider?.logoUrl,
+                      m.provider?.name || m.creator,
+                      m.websiteUrl,
+                      m.name
+                    );
+                    const company = m.provider?.name || m.creator || "";
+                    return (
                       <th key={m.id} className="px-4 py-3 min-w-[200px]">
                         <Link href={`/models/${m.id}`} className="group block">
                           <div className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white text-xs font-bold text-neutral-900">
-                              {m.provider?.logoUrl ? (
-                                <Image
-                                  src={m.provider.logoUrl}
-                                  alt=""
-                                  width={32}
-                                  height={32}
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1 text-xs font-bold text-neutral-900">
+                              {pLogo ? (
+                                <img
+                                  src={pLogo}
+                                  alt={company ? `${company} logo` : ""}
+                                  width={28}
+                                  height={28}
+                                  loading="lazy"
+                                  decoding="async"
                                   className="h-7 w-7 object-contain"
                                 />
                               ) : (
@@ -134,8 +145,8 @@ export function ModelsCompareClient() {
                           </div>
                         </Link>
                       </th>
-                    ) : null
-                  )}
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#232326]/60">
