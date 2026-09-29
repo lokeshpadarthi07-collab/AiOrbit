@@ -54,6 +54,7 @@ app.use('*', cors({
     // Allow local development, preview subdomains, and primary domains
     if (
       origin === 'https://aiorbit.club' ||
+      origin === 'https://ai-orbit-86s9.vercel.app' ||
       origin.endsWith('.aiorbit.club') ||
       origin.endsWith('.pages.dev') ||
       origin.startsWith('http://localhost:') ||
