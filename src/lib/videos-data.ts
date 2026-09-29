@@ -6,6 +6,12 @@ export { getFromCache, setInCache, prefetchUrl };
 export { BLUR_DATA_URL, formatDuration, formatViews, formatRelativeDate } from "./video-types";
 
 function resolveApiUrl(): string {
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname.endsWith(".vercel.app")
+  ) {
+    return `${window.location.origin}/api-proxy`;
+  }
   const url = process.env.NEXT_PUBLIC_API_URL;
   if (url && url.startsWith("http") && url !== "undefined") {
     const isLocalUrl = url.includes("localhost") || url.includes("127.0.0.1");
