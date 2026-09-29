@@ -80,8 +80,11 @@ describe("TasksClient", () => {
 
   it("renders column headers", () => {
     render(<TasksClient initialData={mockResponse} />);
-    expect(screen.getByText("SUBSCRIBERS")).toBeInTheDocument();
-    expect(screen.getByText("SAVES")).toBeInTheDocument();
+    expect(screen.getByText("Task")).toBeInTheDocument();
     expect(screen.getByText("TOOLS")).toBeInTheDocument();
+    expect(screen.getByText("MODELS")).toBeInTheDocument();
+    expect(screen.getByText("ROBOTS")).toBeInTheDocument();
+    expect(screen.getByText("DEVICES")).toBeInTheDocument();
+    expect(screen.getByText("Actions")).toBeInTheDocument();
   });
 });

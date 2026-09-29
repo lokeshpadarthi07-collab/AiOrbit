@@ -1,17 +1,19 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useParams, notFound } from "next/navigation";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTask, fetchTasks, type Task, type TaskDetail as TaskDetailData } from "@/lib/tasks-api";
 import { API_URL, getFromCache } from "@/lib/api";
 import { TaskDetail } from "@/components/TaskDetail";
+import { TaskErrorState } from "@/components/TaskErrorState";
 
 export function TaskDetailClient() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["task-detail", slug],
     queryFn: () => fetchTask(slug),
     initialData: () => {
@@ -45,10 +47,6 @@ export function TaskDetailClient() {
     }
   }, [task]);
 
-  if (isError && !task) {
-    notFound();
-  }
-
   if (isLoading && !task) {
     return (
       <main className="flex-1 bg-[#000000] w-full max-w-none px-6 lg:px-10 xl:px-14 py-8">
@@ -69,6 +67,22 @@ export function TaskDetailClient() {
               ))}
             </div>
           </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!task) {
+    return (
+      <main className="flex-1 bg-[#000000] w-full max-w-none px-6 lg:px-10 xl:px-14 py-8">
+        <TaskErrorState
+          message={isError ? "We couldn't load this task. Please try again." : "This task could not be found or loaded."}
+          onRetry={() => { void refetch(); }}
+        />
+        <div className="mt-4 text-center">
+          <Link href="/tasks" className="text-sm text-white/70 hover:text-white">
+            Back to Tasks
+          </Link>
         </div>
       </main>
     );
