@@ -253,7 +253,7 @@ export default function CompaniesLeaderboardSection() {
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm border border-white/10 shrink-0 font-mono shadow-sm"
+                          className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs border border-white/10 shrink-0 font-mono shadow-sm"
                           style={{ backgroundColor: `${company.logoColor}20`, color: company.logoColor }}
                         >
                           {company.logoText?.slice(0, 2) || company.name.slice(0, 2)}

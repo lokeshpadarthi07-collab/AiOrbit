@@ -11,6 +11,7 @@ import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
 import { RepositoryRow } from "@/components/ui/RepositoryRow";
 import { Pagination } from "@/components/Pagination";
 import { scrollChipIntoView } from "@/lib/utils";
+import { resolveRepositoryCompany } from "@/lib/repo-companies";
 
 const getBackendSortValue = (field: string | null, order: "asc" | "desc"): string | undefined => {
   if (field === "stars" && order === "desc") return "stars_desc";
@@ -184,7 +185,13 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
     owners.forEach((o) => {
       const name = o.displayName || o.owner;
       if (/^\d+$/.test(name)) return;
-      logos[name] = o.logoUrl || `https://github.com/${o.owner}.png`;
+      const resolved = resolveRepositoryCompany({
+        owner: o.owner,
+        name: o.displayName,
+        companySlug: o.companySlug,
+        logoUrl: o.logoUrl,
+      });
+      logos[name] = resolved.logoUrl;
     });
     return logos;
   }, [owners]);
@@ -362,8 +369,11 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
                   <div className="pl-5">
                     <div className="h-3 w-1/3 rounded bg-white/[0.04]" />
                   </div>
-                  {/* Col 3 */}
-                  <div className="h-3 w-1/2 rounded bg-white/[0.04] hidden md:block" />
+                  {/* Col 2 (Company) */}
+                  <div className="hidden md:flex items-center gap-[10px]">
+                    <div className="h-8 w-8 md:h-11 md:w-11 shrink-0 rounded-lg bg-white/[0.04]" />
+                    <div className="h-3 w-1/2 rounded bg-white/[0.04]" />
+                  </div>
                   {/* Col 4 */}
                   <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto" />
                   {/* Col 5 */}

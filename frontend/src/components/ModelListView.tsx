@@ -55,7 +55,16 @@ function isTruthy(...vals: Array<unknown>): boolean {
 }
 
 function resolveProviderLogo(src: string | null | undefined, name: string) {
-  if (name.trim().toLowerCase().includes("openai")) return "/logos/openai.svg";
+  const n = (name || "").trim().toLowerCase();
+  if (n.includes("openai")) return "/logos/openai.svg";
+  if (n.includes("anthropic")) return "/logos/anthropic.svg";
+  if (n.includes("google") || n.includes("deepmind")) return "/logos/google.svg";
+  if (n.includes("meta") || n.includes("facebook") || n.includes("fair")) return "/logos/meta.svg";
+  if (n.includes("microsoft")) return "/logos/microsoft.svg";
+  if (n.includes("mistral")) return "/logos/mistralai.svg";
+  if (n.includes("nvidia")) return "/logos/nvidia.svg";
+  if (n.includes("hugging")) return "/logos/huggingface.svg";
+  if (n.includes("perplexity")) return "/logos/perplexity.svg";
   return src ?? null;
 }
 
@@ -534,22 +543,22 @@ function ModelRow({
 
       {/* Mobile: keep the first column (logo + model name) fixed while the rest scrolls. */}
       <div className="sticky left-0 z-20 flex h-full min-w-0 items-center gap-2 bg-[#000000] pr-2 shadow-[10px_0_10px_-10px_rgba(0,0,0,0.6)] transition-colors group-hover:bg-[#18181C] md:hidden">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
           {companyLogo && !logoFailed ? (
             <img
               src={companyLogo}
               alt={`${companyName} logo`}
-              width={32}
-              height={32}
+              width={24}
+              height={24}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-contain"
+              className="h-6 w-6 object-contain"
               onError={() => setLogoFailed(true)}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
+              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-xs font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
@@ -571,23 +580,23 @@ function ModelRow({
       </div>
 
       {/* Desktop: the provider logo belongs to the first column beside the model. */}
-      <div className="hidden min-w-0 items-center gap-2 pr-2 md:flex">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
+      <div className="hidden min-w-0 items-center gap-2.5 pr-2 md:flex">
+        <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1 group-hover:border-[#6E56CF] transition-colors">
           {companyLogo && !logoFailed ? (
             <img
               src={companyLogo}
               alt={`${companyName} logo`}
-              width={32}
-              height={32}
+              width={40}
+              height={40}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-contain"
+              className="h-6 w-6 md:h-9 md:w-9 object-contain"
               onError={() => setLogoFailed(true)}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
+              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
@@ -700,16 +709,19 @@ export function ModelListView({
               key={i}
               className={`grid ${COL_TEMPLATE} ${COL_MIN_WIDTH} items-center gap-2.5 px-4 py-2.5`}
             >
-              <div className="sticky left-0 z-20 h-4 w-28 animate-pulse rounded bg-[#18181C] md:hidden" />
-              <div className="h-3 w-full max-w-56 animate-pulse rounded bg-[#18181C] md:hidden" />
-              <div className="hidden min-w-0 space-y-1.5 pr-2 md:block">
-                <div className="h-3 w-40 animate-pulse rounded bg-[#18181C]" />
-                <div className="h-2 w-full max-w-64 animate-pulse rounded bg-[#18181C]" />
-              </div>
-              <div className="flex items-center gap-2">
+              <div className="sticky left-0 z-20 flex items-center gap-2 md:hidden">
                 <div className="h-8 w-8 shrink-0 animate-pulse rounded-lg bg-[#18181C]" />
-                <div className="h-3 w-20 animate-pulse rounded bg-[#18181C]" />
+                <div className="h-4 w-20 animate-pulse rounded bg-[#18181C]" />
               </div>
+              <div className="h-3 w-full max-w-56 animate-pulse rounded bg-[#18181C] md:hidden" />
+              <div className="hidden min-w-0 items-center gap-2.5 pr-2 md:flex">
+                <div className="h-8 w-8 md:h-11 md:w-11 shrink-0 animate-pulse rounded-lg bg-[#18181C]" />
+                <div className="space-y-1.5 min-w-0">
+                  <div className="h-3 w-40 animate-pulse rounded bg-[#18181C]" />
+                  <div className="h-2 w-full max-w-64 animate-pulse rounded bg-[#18181C]" />
+                </div>
+              </div>
+              <div className="h-3 w-20 animate-pulse rounded bg-[#18181C] hidden md:block" />
               <div className="h-4 w-16 animate-pulse rounded bg-[#18181C]" />
               <div className="h-3 w-24 animate-pulse rounded bg-[#18181C]" />
               <div className="h-3 w-20 animate-pulse rounded bg-[#18181C]" />

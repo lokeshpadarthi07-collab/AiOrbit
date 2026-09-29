@@ -37,7 +37,7 @@ export default function ModelsPage() {
                         key={i}
                         className={`grid ${SKELETON_COL_TEMPLATE} ${SKELETON_COL_MIN_WIDTH} items-center gap-3 px-4 py-2.5`}
                       >
-                        <div className="h-10 w-10 animate-pulse rounded-lg bg-[#18181C]" />
+                        <div className="h-8 w-8 md:h-11 md:w-11 shrink-0 animate-pulse rounded-lg bg-[#18181C]" />
                         <div className="space-y-1.5">
                           <div className="h-3 w-40 animate-pulse rounded bg-[#18181C]" />
                           <div className="h-2 w-64 animate-pulse rounded bg-[#18181C]" />
