@@ -183,7 +183,7 @@ export async function cachedFetchJson<T>(
 async function performFetch<T>(urlStr: string, fallback: T, ttlMs: number): Promise<T> {
   try {
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(() => controller.abort(), urlStr.includes(":8787") ? 2500 : 8000) : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), urlStr.includes(":8787") ? 2500 : 15000) : null;
     let res: Response;
     try {
       res = await fetch(urlStr, {

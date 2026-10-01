@@ -27,7 +27,7 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
   const [sortField, setSortField] = useState<"stars" | "forks" | "size" | "updated" | null>("stars");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100);
+  const [pageSize, setPageSize] = useState(25);
 
   useEffect(() => {
     const s = searchParams.get("sort") ?? "newest";
