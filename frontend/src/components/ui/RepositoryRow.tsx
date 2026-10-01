@@ -197,56 +197,73 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
         }}
         aria-label={`View details for ${repo.name} repository`}
         style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-        className="flex sm:hidden p-[12px] bg-transparent hover:bg-white/[0.02] transition-colors w-full focus-visible:bg-white/[0.02] focus-visible:outline-none justify-between items-center gap-[10px] border-b border-white/[0.06] last:border-b-0 cursor-pointer"
+        className="flex sm:hidden p-[12px] bg-transparent hover:bg-white/[0.02] transition-colors w-full focus-visible:bg-white/[0.02] focus-visible:outline-none justify-between items-center gap-[10px] border-b border-white/[0.06] last:border-b-0 cursor-pointer overflow-hidden"
       >
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          {/* Company Logo: Strict MCP Container & Inner Size */}
+          <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
             {companyLogo && !logoFailed ? (
               <img
                 src={companyLogo}
                 alt={`${repo.owner} logo`}
                 width={32}
                 height={32}
-                className="h-6 w-6 object-contain"
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-6 md:h-9 md:w-9 object-contain"
                 onError={() => setLogoFailed(true)}
               />
             ) : (
-              <span className="flex h-6 w-6 items-center justify-center text-xs font-bold text-neutral-900">
-                {repo.owner.charAt(0).toUpperCase()}
+              <span
+                aria-label={`${repo.owner} logo`}
+                className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
+              >
+                {(repo.owner || "?").charAt(0).toUpperCase()}
               </span>
             )}
           </div>
+
           <div className="flex-1 min-w-0">
             {/* Row 1: Title & Owner */}
-            <div className="flex items-baseline min-w-0">
-              <RepositoryTitle name={repo.name} />
-              <span className="text-[12px] text-[#71717A] ml-2 shrink-0">by {repo.owner}</span>
+            <div className="flex items-center min-w-0 gap-1.5 overflow-hidden">
+              <h3 className="font-semibold text-white text-[13px] truncate min-w-0 flex-1">
+                {repo.name ? repo.name.charAt(0).toUpperCase() + repo.name.slice(1) : repo.name}
+              </h3>
+              <span className="text-[11px] text-[#71717A] shrink-0 truncate max-w-[120px]">
+                by {repo.owner}
+              </span>
             </div>
 
-          {/* Row 2: Stats Inline Bar */}
-          <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-[#71717A] font-mono mt-1">
-            <span className="flex items-center gap-0.5">
-              ⭐ {starCount.toLocaleString("en-US")}
-            </span>
-            <span>·</span>
-            <span className="flex items-center gap-0.5">
-              🍴 {forksCount.toLocaleString("en-US")}
-            </span>
-            {licenseText && (
-              <>
-                <span>·</span>
-                <span className="px-[6px] py-[1px] rounded-full border border-[#444c5b] bg-[#292932] text-[9px] text-[#A1A1AA]">
-                  {licenseText}
-                </span>
-              </>
-            )}
-            <span>·</span>
-            <span>{sizeText}</span>
-            <span>·</span>
-            <span className="text-[#22C55E]">{updateHours}</span>
+            {/* Row 2: Stats Inline Bar with Crisp Icons */}
+            <div className="flex items-center gap-2 text-[11px] text-[#71717A] font-mono mt-1 overflow-hidden whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 shrink-0 text-[#A1A1AA]">
+                <Star size={12} className="text-amber-400 fill-amber-400/20 shrink-0" />
+                {starCount.toLocaleString("en-US")}
+              </span>
+              <span className="text-[#3F3F46]">·</span>
+              <span className="inline-flex items-center gap-1 shrink-0 text-[#A1A1AA]">
+                <GitFork size={12} className="text-[#71717A] shrink-0" />
+                {forksCount.toLocaleString("en-US")}
+              </span>
+              {licenseText && (
+                <>
+                  <span className="text-[#3F3F46]">·</span>
+                  <span className="px-[6px] py-[1px] rounded-full border border-[#444c5b] bg-[#292932] text-[9px] text-[#A1A1AA] truncate max-w-[80px] shrink-0">
+                    {licenseText}
+                  </span>
+                </>
+              )}
+              <span className="text-[#3F3F46]">·</span>
+              <span className="shrink-0 text-[#71717A]">{sizeText}</span>
+              {updateHours !== "—" && (
+                <>
+                  <span className="text-[#3F3F46]">·</span>
+                  <span className="text-emerald-400 shrink-0">{updateHours}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
         {/* Far Right Action Icon */}
         <a
@@ -254,8 +271,9 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
           aria-label={`Open ${repo.name} repository on GitHub`}
-          className="z-10 cursor-pointer"
+          className="z-10 shrink-0 cursor-pointer p-1 -mr-1"
         >
           <GithubIconButton size={16} className="hover:text-white hover:bg-[#232329] transition-all" />
         </a>

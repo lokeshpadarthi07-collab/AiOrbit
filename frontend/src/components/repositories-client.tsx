@@ -343,29 +343,42 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
               onCloseRepoFilter={() => setIsRepoFilterOpen(false)}
             >
               {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-[minmax(0,2.5fr)_minmax(0,1.8fr)_minmax(0,1.5fr)_60px] md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_60px] gap-[10px] items-center py-[7px] px-[9px] h-[65px] w-full animate-pulse border-b border-white/[0.06] last:border-b-0"
-                >
-                  {/* Col 2 */}
-                  <div className="pl-5">
-                    <div className="h-3 w-1/3 rounded bg-white/[0.04]" />
+                <React.Fragment key={i}>
+                  {/* Desktop skeleton */}
+                  <div
+                    className="hidden sm:grid grid-cols-[minmax(0,2.5fr)_minmax(0,1.8fr)_minmax(0,1.5fr)_60px] md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_60px] gap-[10px] items-center py-[7px] px-[9px] h-[65px] w-full animate-pulse border-b border-white/[0.06] last:border-b-0"
+                  >
+                    {/* Col 2 */}
+                    <div className="pl-5">
+                      <div className="h-3 w-1/3 rounded bg-white/[0.04]" />
+                    </div>
+                    {/* Col 3 */}
+                    <div className="h-3 w-1/2 rounded bg-white/[0.04] hidden md:block" />
+                    {/* Col 4 */}
+                    <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto" />
+                    {/* Col 5 */}
+                    <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto hidden lg:block" />
+                    {/* Col 6 */}
+                    <div className="h-4 w-12 rounded-full bg-white/[0.04] mx-auto hidden md:block" />
+                    {/* Col 7 */}
+                    <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto hidden xl:block" />
+                    {/* Col 8 */}
+                    <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto block md:hidden lg:block" />
+                    {/* Col 9 */}
+                    <div className="h-7 w-7 rounded-full bg-white/[0.04] mx-auto" />
                   </div>
-                  {/* Col 3 */}
-                  <div className="h-3 w-1/2 rounded bg-white/[0.04] hidden md:block" />
-                  {/* Col 4 */}
-                  <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto" />
-                  {/* Col 5 */}
-                  <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto hidden lg:block" />
-                  {/* Col 6 */}
-                  <div className="h-4 w-12 rounded-full bg-white/[0.04] mx-auto hidden md:block" />
-                  {/* Col 7 */}
-                  <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto hidden xl:block" />
-                  {/* Col 8 */}
-                  <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto block md:hidden lg:block" />
-                  {/* Col 9 */}
-                  <div className="h-7 w-7 rounded-full bg-white/[0.04] mx-auto" />
-                </div>
+                  {/* Mobile skeleton */}
+                  <div className="flex sm:hidden p-[12px] items-center justify-between gap-[10px] w-full animate-pulse border-b border-white/[0.06] last:border-b-0">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-white/[0.04] shrink-0" />
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <div className="h-3 w-1/2 rounded bg-white/[0.04]" />
+                        <div className="h-2.5 w-3/4 rounded bg-white/[0.04]" />
+                      </div>
+                    </div>
+                    <div className="h-7 w-7 rounded-full bg-white/[0.04] shrink-0" />
+                  </div>
+                </React.Fragment>
               ))}
             </RepositoryTable>
           ) : (
