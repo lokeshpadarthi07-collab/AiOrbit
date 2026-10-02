@@ -11,7 +11,6 @@ import { ScrollToTopButton } from "@/components/ui/ScrollToTopButton";
 import { RepositoryRow } from "@/components/ui/RepositoryRow";
 import { Pagination } from "@/components/Pagination";
 import { scrollChipIntoView } from "@/lib/utils";
-import { resolveRepositoryCompany } from "@/lib/repo-companies";
 
 const getBackendSortValue = (field: string | null, order: "asc" | "desc"): string | undefined => {
   if (field === "stars" && order === "desc") return "stars_desc";
@@ -180,22 +179,6 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
     return keys;
   }, [owners]);
 
-  const companyLogos = React.useMemo(() => {
-    const logos: Record<string, string> = {};
-    owners.forEach((o) => {
-      const name = o.displayName || o.owner;
-      if (/^\d+$/.test(name)) return;
-      const resolved = resolveRepositoryCompany({
-        owner: o.owner,
-        name: o.displayName,
-        companySlug: o.companySlug,
-        logoUrl: o.logoUrl,
-      });
-      logos[name] = resolved.logoUrl;
-    });
-    return logos;
-  }, [owners]);
-
   // Filter repositories by name (unsupported filters stay client-side)
   const nameFilteredRepos = React.useMemo(() => {
     if (!activeRepoSearch) return repos;
@@ -343,7 +326,6 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
               onSelectCompany={handleSelectCompany}
               companyCounts={companyCounts}
               companySearchKeys={companySearchKeys}
-              companyLogos={companyLogos}
               totalCount={total}
               isLicenseDropdownOpen={isLicenseDropdownOpen}
               onToggleLicenseDropdown={() => setIsLicenseDropdownOpen(prev => !prev)}
@@ -361,32 +343,42 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
               onCloseRepoFilter={() => setIsRepoFilterOpen(false)}
             >
               {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-[minmax(0,2.5fr)_minmax(0,1.8fr)_minmax(0,1.5fr)_60px] md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_60px] gap-[10px] items-center py-[7px] px-[9px] h-[65px] w-full animate-pulse border-b border-white/[0.06] last:border-b-0"
-                >
-                  {/* Col 2 */}
-                  <div className="pl-5">
-                    <div className="h-3 w-1/3 rounded bg-white/[0.04]" />
+                <React.Fragment key={i}>
+                  {/* Desktop skeleton */}
+                  <div
+                    className="hidden sm:grid grid-cols-[minmax(0,2.5fr)_minmax(0,1.8fr)_minmax(0,1.5fr)_60px] md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1.5fr)_60px] xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_60px] gap-[10px] items-center py-[7px] px-[9px] h-[65px] w-full animate-pulse border-b border-white/[0.06] last:border-b-0"
+                  >
+                    {/* Col 2 */}
+                    <div className="pl-5">
+                      <div className="h-3 w-1/3 rounded bg-white/[0.04]" />
+                    </div>
+                    {/* Col 3 */}
+                    <div className="h-3 w-1/2 rounded bg-white/[0.04] hidden md:block" />
+                    {/* Col 4 */}
+                    <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto" />
+                    {/* Col 5 */}
+                    <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto hidden lg:block" />
+                    {/* Col 6 */}
+                    <div className="h-4 w-12 rounded-full bg-white/[0.04] mx-auto hidden md:block" />
+                    {/* Col 7 */}
+                    <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto hidden xl:block" />
+                    {/* Col 8 */}
+                    <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto block md:hidden lg:block" />
+                    {/* Col 9 */}
+                    <div className="h-7 w-7 rounded-full bg-white/[0.04] mx-auto" />
                   </div>
-                  {/* Col 2 (Company) */}
-                  <div className="hidden md:flex items-center gap-[10px]">
-                    <div className="h-8 w-8 md:h-11 md:w-11 shrink-0 rounded-lg bg-white/[0.04]" />
-                    <div className="h-3 w-1/2 rounded bg-white/[0.04]" />
+                  {/* Mobile skeleton */}
+                  <div className="flex sm:hidden p-[12px] items-center justify-between gap-[10px] w-full animate-pulse border-b border-white/[0.06] last:border-b-0">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-white/[0.04] shrink-0" />
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <div className="h-3 w-1/2 rounded bg-white/[0.04]" />
+                        <div className="h-2.5 w-3/4 rounded bg-white/[0.04]" />
+                      </div>
+                    </div>
+                    <div className="h-7 w-7 rounded-full bg-white/[0.04] shrink-0" />
                   </div>
-                  {/* Col 4 */}
-                  <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto" />
-                  {/* Col 5 */}
-                  <div className="h-3 w-10 rounded bg-white/[0.04] mx-auto hidden lg:block" />
-                  {/* Col 6 */}
-                  <div className="h-4 w-12 rounded-full bg-white/[0.04] mx-auto hidden md:block" />
-                  {/* Col 7 */}
-                  <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto hidden xl:block" />
-                  {/* Col 8 */}
-                  <div className="h-3 w-8 rounded bg-white/[0.04] mx-auto block md:hidden lg:block" />
-                  {/* Col 9 */}
-                  <div className="h-7 w-7 rounded-full bg-white/[0.04] mx-auto" />
-                </div>
+                </React.Fragment>
               ))}
             </RepositoryTable>
           ) : (
@@ -401,7 +393,6 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
               onSelectCompany={handleSelectCompany}
               companyCounts={companyCounts}
               companySearchKeys={companySearchKeys}
-              companyLogos={companyLogos}
               totalCount={total}
               isLicenseDropdownOpen={isLicenseDropdownOpen}
               onToggleLicenseDropdown={() => setIsLicenseDropdownOpen(prev => !prev)}
