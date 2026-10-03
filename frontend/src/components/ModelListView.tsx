@@ -12,6 +12,7 @@ import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
 import type { AIModel } from "@/lib/types";
 import { formatModelType, MODEL_TYPE_OPTIONS } from "@/lib/types";
 import { API_URL, prefetchUrl } from "@/lib/api";
+import { resolveCompanyLogo, resolveModelBrand } from "@/lib/companyLogos";
 
 const MAX_COMPARE = 2;
 
@@ -496,8 +497,7 @@ function ModelRow({
   isCompareFull: boolean;
   onToggleCompare: (model: AIModel) => void;
 }) {
-  const companyName = model.provider?.name || model.creator || "—";
-  const companyLogo = resolveProviderLogo(model.provider?.logoUrl, companyName);
+  const { companyName, logoUrl: companyLogo } = resolveModelBrand(model);
   const [logoFailed, setLogoFailed] = useState(false);
   const typeLabels = (
     formatModelType(model.modelType) ||
@@ -534,22 +534,22 @@ function ModelRow({
 
       {/* Mobile: keep the first column (logo + model name) fixed while the rest scrolls. */}
       <div className="sticky left-0 z-20 flex h-full min-w-0 items-center gap-2 bg-[#000000] pr-2 shadow-[10px_0_10px_-10px_rgba(0,0,0,0.6)] transition-colors group-hover:bg-[#18181C] md:hidden">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+        <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
           {companyLogo && !logoFailed ? (
             <img
               src={companyLogo}
               alt={`${companyName} logo`}
-              width={28}
-              height={28}
+              width={40}
+              height={40}
               loading="lazy"
               decoding="async"
-              className="h-7 w-7 object-contain"
+              className="h-6 w-6 md:h-9 md:w-9 object-contain"
               onError={() => setLogoFailed(true)}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
+              className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
@@ -571,23 +571,23 @@ function ModelRow({
       </div>
 
       {/* Desktop: the provider logo belongs to the first column beside the model. */}
-      <div className="hidden min-w-0 items-center gap-2 pr-2 md:flex">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+      <div className="hidden min-w-0 items-center gap-2.5 pr-2 md:flex">
+        <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
           {companyLogo && !logoFailed ? (
             <img
               src={companyLogo}
               alt={`${companyName} logo`}
-              width={28}
-              height={28}
+              width={40}
+              height={40}
               loading="lazy"
               decoding="async"
-              className="h-7 w-7 object-contain"
+              className="h-6 w-6 md:h-9 md:w-9 object-contain"
               onError={() => setLogoFailed(true)}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-sm font-bold text-neutral-900"
+              className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
