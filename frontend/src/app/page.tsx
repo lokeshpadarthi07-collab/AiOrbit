@@ -3,9 +3,22 @@ import { Suspense } from "react";
 import { HomeClient } from "@/components/home-client";
 
 export const metadata: Metadata = {
-  title: "The AI Signal — Discover the AI Ecosystem",
+  title: "AIOrbit - The Home of Everything AI.",
   description:
-    "Discover, compare, and explore the best AI tools, companies, models, and repositories in the global ecosystem.",
+    "Discover the tools, companies, and technologies shaping the global AI ecosystem",
+  openGraph: {
+    title: "AIOrbit - The Home of Everything AI.",
+    description:
+      "Discover the tools, companies, and technologies shaping the global AI ecosystem",
+    siteName: "AIOrbit",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AIOrbit - The Home of Everything AI.",
+    description:
+      "Discover the tools, companies, and technologies shaping the global AI ecosystem",
+  },
 };
 
 export default function HomePage() {

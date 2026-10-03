@@ -33,7 +33,6 @@ interface RepositoryTableProps {
   onCloseRepoFilter: () => void;
   companySearchAliases?: Record<string, string[]>;
   companySearchKeys?: Record<string, string>;
-  companyLogos?: Record<string, string>;
 }
 
 export function RepositoryTable({
@@ -64,11 +63,10 @@ export function RepositoryTable({
   onCloseRepoFilter,
   companySearchAliases,
   companySearchKeys,
-  companyLogos,
 }: RepositoryTableProps) {
   return (
     <div 
-      className="w-full flex flex-col border border-[#232326]/60 rounded-xl bg-[#131316]/10"
+      className="w-full flex flex-col border border-[#232326]/60 rounded-xl bg-[#131316]/10 overflow-hidden"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
     >
       {/* Sticky Table Header */}
@@ -131,7 +129,6 @@ export function RepositoryTable({
               id="company-filter-dropdown"
               searchAliases={companySearchAliases}
               searchKeys={companySearchKeys}
-              itemLogos={companyLogos}
             />
           </div>
 

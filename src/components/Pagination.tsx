@@ -95,7 +95,7 @@ export function Pagination({
       className={cn("flex flex-col sm:flex-row items-center justify-center gap-3 py-6 w-full", className)}
     >
       {/* Floating Pill Container matching exact reference screenshot */}
-      <div className="inline-flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full border border-[#232326] bg-[#131316]/95 backdrop-blur-md shadow-xl text-xs text-[#A1A1AA]">
+      <div className="inline-flex max-w-full overflow-x-auto scrollbar-none items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-full border border-[#232326] bg-[#131316]/95 backdrop-blur-md shadow-xl text-xs text-[#A1A1AA]">
         
         {/* Previous Button */}
         {onPageChange || !params ? (

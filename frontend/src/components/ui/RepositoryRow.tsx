@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Github from "lucide-react/dist/esm/icons/github";
 import Star from "lucide-react/dist/esm/icons/star";
@@ -8,6 +8,7 @@ import GitFork from "lucide-react/dist/esm/icons/git-fork";
 import { Repository } from "@/lib/types";
 
 import { API_URL, prefetchUrl } from "@/lib/api";
+import { resolveCompanyLogo } from "@/lib/companyLogos";
 
 interface RepositoryRowProps {
   repo: Repository;
@@ -51,8 +52,6 @@ const getRelativeTime = (dateStr?: string | null) => {
   }
 };
 
-import { resolveRepositoryCompany } from "@/lib/repo-companies";
-
 export const RepositoryRow = React.memo(function RepositoryRow({ repo }: RepositoryRowProps) {
   const router = useRouter();
   
@@ -61,14 +60,12 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
   const sizeText = `${(repo.stars / 210 + 1.2).toFixed(1)} MB`;
   
   const licenseText = repo.license || null;
-  const companyInfo = React.useMemo(() => resolveRepositoryCompany(repo), [repo]);
-  const [currentSrc, setCurrentSrc] = React.useState(companyInfo.logoUrl);
-  const [imgFailed, setImgFailed] = React.useState(false);
+  const companyLogo = resolveCompanyLogo(repo.owner, repo.logoUrl || repo.ownerAvatarUrl, true);
+  const [logoFailed, setLogoFailed] = useState(false);
 
-  React.useEffect(() => {
-    setCurrentSrc(companyInfo.logoUrl);
-    setImgFailed(false);
-  }, [companyInfo.logoUrl]);
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [companyLogo]);
 
   const updateHours = getRelativeTime(repo.syncedAt) || getRelativeTime(repo.githubCreatedAt) || "—";
 
@@ -111,26 +108,29 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
         </div>
 
         {/* Column 2: Company / Owner */}
-        <div className="min-w-0 flex items-center gap-[10px] text-[13px] text-[#A1A1AA] font-semibold hidden md:flex text-left">
-          <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1 group-hover:border-[#6E56CF] transition-colors">
-            <img
-              src={currentSrc}
-              alt={`${companyInfo.name || repo.owner} logo`}
-              width={40}
-              height={40}
-              loading="lazy"
-              decoding="async"
-              className="h-6 w-6 md:h-9 md:w-9 object-contain"
-              onError={() => {
-                if (currentSrc !== "/logos/huggingface.svg") {
-                  setCurrentSrc("/logos/huggingface.svg");
-                } else {
-                  setImgFailed(true);
-                }
-              }}
-            />
+        <div className="min-w-0 flex items-center gap-2.5 text-[13px] text-[#A1A1AA] font-semibold hidden md:flex text-left">
+          <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
+            {companyLogo && !logoFailed ? (
+              <img
+                src={companyLogo}
+                alt={`${repo.owner} logo`}
+                width={40}
+                height={40}
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-6 md:h-9 md:w-9 object-contain"
+                onError={() => setLogoFailed(true)}
+              />
+            ) : (
+              <span
+                aria-label={`${repo.owner} logo`}
+                className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
+              >
+                {repo.owner.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
-          <span className="truncate">{companyInfo.name || repo.owner}</span>
+          <span className="truncate text-white text-[13px] font-medium group-hover:text-white transition-colors">{repo.owner}</span>
         </div>
 
         {/* Column 4: Stars */}
@@ -197,62 +197,71 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
         }}
         aria-label={`View details for ${repo.name} repository`}
         style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-        className="flex sm:hidden p-[12px] bg-transparent hover:bg-white/[0.02] transition-colors w-full focus-visible:bg-white/[0.02] focus-visible:outline-none justify-between items-center gap-[10px] border-b border-white/[0.06] last:border-b-0 cursor-pointer"
+        className="flex sm:hidden p-[12px] bg-transparent hover:bg-white/[0.02] transition-colors w-full focus-visible:bg-white/[0.02] focus-visible:outline-none justify-between items-center gap-[10px] border-b border-white/[0.06] last:border-b-0 cursor-pointer overflow-hidden"
       >
-        <div className="flex-1 min-w-0">
-          {/* Row 1: Title & Owner with Logo */}
-          <div className="flex items-center min-w-0 gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
-              {currentSrc && !imgFailed ? (
-                <img
-                  src={currentSrc}
-                  alt={`${companyInfo.name || repo.owner} logo`}
-                  width={24}
-                  height={24}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-6 w-6 object-contain"
-                  onError={() => {
-                    if (currentSrc !== "/logos/huggingface.svg") {
-                      setCurrentSrc("/logos/huggingface.svg");
-                    } else {
-                      setImgFailed(true);
-                    }
-                  }}
-                />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-xs font-bold text-neutral-900">
-                  {companyInfo.name ? companyInfo.name.charAt(0).toUpperCase() : repo.owner ? repo.owner.charAt(0).toUpperCase() : "R"}
-                </span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <RepositoryTitle name={repo.name} />
-              <span className="text-[12px] text-[#71717A] truncate block">by {repo.owner}</span>
-            </div>
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          {/* Company Logo: Strict MCP Container & Inner Size */}
+          <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+            {companyLogo && !logoFailed ? (
+              <img
+                src={companyLogo}
+                alt={`${repo.owner} logo`}
+                width={32}
+                height={32}
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-6 md:h-9 md:w-9 object-contain"
+                onError={() => setLogoFailed(true)}
+              />
+            ) : (
+              <span
+                aria-label={`${repo.owner} logo`}
+                className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
+              >
+                {(repo.owner || "?").charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
 
-          {/* Row 2: Stats Inline Bar */}
-          <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-[#71717A] font-mono mt-1">
-            <span className="flex items-center gap-0.5">
-              ⭐ {starCount.toLocaleString("en-US")}
-            </span>
-            <span>·</span>
-            <span className="flex items-center gap-0.5">
-              🍴 {forksCount.toLocaleString("en-US")}
-            </span>
-            {licenseText && (
-              <>
-                <span>·</span>
-                <span className="px-[6px] py-[1px] rounded-full border border-[#444c5b] bg-[#292932] text-[9px] text-[#A1A1AA]">
-                  {licenseText}
-                </span>
-              </>
-            )}
-            <span>·</span>
-            <span>{sizeText}</span>
-            <span>·</span>
-            <span className="text-[#22C55E]">{updateHours}</span>
+          <div className="flex-1 min-w-0">
+            {/* Row 1: Title & Owner */}
+            <div className="flex items-center min-w-0 gap-1.5 overflow-hidden">
+              <h3 className="font-semibold text-white text-[13px] truncate min-w-0 flex-1">
+                {repo.name ? repo.name.charAt(0).toUpperCase() + repo.name.slice(1) : repo.name}
+              </h3>
+              <span className="text-[11px] text-[#71717A] shrink-0 truncate max-w-[120px]">
+                by {repo.owner}
+              </span>
+            </div>
+
+            {/* Row 2: Stats Inline Bar with Crisp Icons */}
+            <div className="flex items-center gap-2 text-[11px] text-[#71717A] font-mono mt-1 overflow-hidden whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 shrink-0 text-[#A1A1AA]">
+                <Star size={12} className="text-amber-400 fill-amber-400/20 shrink-0" />
+                {starCount.toLocaleString("en-US")}
+              </span>
+              <span className="text-[#3F3F46]">·</span>
+              <span className="inline-flex items-center gap-1 shrink-0 text-[#A1A1AA]">
+                <GitFork size={12} className="text-[#71717A] shrink-0" />
+                {forksCount.toLocaleString("en-US")}
+              </span>
+              {licenseText && (
+                <>
+                  <span className="text-[#3F3F46]">·</span>
+                  <span className="px-[6px] py-[1px] rounded-full border border-[#444c5b] bg-[#292932] text-[9px] text-[#A1A1AA] truncate max-w-[80px] shrink-0">
+                    {licenseText}
+                  </span>
+                </>
+              )}
+              <span className="text-[#3F3F46]">·</span>
+              <span className="shrink-0 text-[#71717A]">{sizeText}</span>
+              {updateHours !== "—" && (
+                <>
+                  <span className="text-[#3F3F46]">·</span>
+                  <span className="text-emerald-400 shrink-0">{updateHours}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -262,8 +271,9 @@ export const RepositoryRow = React.memo(function RepositoryRow({ repo }: Reposit
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
           aria-label={`Open ${repo.name} repository on GitHub`}
-          className="z-10 cursor-pointer"
+          className="z-10 shrink-0 cursor-pointer p-1 -mr-1"
         >
           <GithubIconButton size={16} className="hover:text-white hover:bg-[#232329] transition-all" />
         </a>
