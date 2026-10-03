@@ -82,7 +82,7 @@ export function preprocessReadmeHtml(
       const w = widthMatch[1];
       const val = /^\d+(?:\.\d+)?$/.test(w) ? `${w}px` : w;
       if (!existingStyle.includes("width:")) {
-        newStyles += `width: ${val};`;
+        newStyles += `width: ${val}; max-width: 100%; height: auto;`;
       }
     }
     if (heightMatch) {
@@ -111,7 +111,7 @@ export function preprocessReadmeHtml(
 export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultBranch }: RepositoryReadmeProps) {
   if (!readmeHtml || readmeHtml.trim() === "") {
     return (
-      <section className="relative z-10 rounded-xl border border-white/[0.08] bg-[#131316] p-6 md:p-8 shadow-md">
+      <section className="relative z-10 rounded-xl border border-white/[0.08] bg-[#131316] p-4 sm:p-6 md:p-8 shadow-md w-full min-w-0 max-w-full overflow-hidden">
         <h2 className="text-lg font-bold text-white mb-4">README</h2>
         <p className="text-sm text-white/40">README is not available for this repository.</p>
       </section>
@@ -124,11 +124,11 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
     : readmeHtml;
 
   return (
-    <section className="relative z-10 rounded-xl border border-white/[0.08] bg-[#131316] p-6 md:p-8 shadow-md">
+    <section className="relative z-10 rounded-xl border border-white/[0.08] bg-[#131316] p-4 sm:p-6 md:p-8 shadow-md w-full min-w-0 max-w-full overflow-hidden">
       <h2 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">README</h2>
       
       <div 
-        className="readme-content"
+        className="readme-content w-full min-w-0 max-w-full overflow-x-auto"
         dangerouslySetInnerHTML={{ __html: processedHtml }}
       />
 
@@ -137,8 +137,16 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
           color: rgba(255, 255, 255, 0.75);
           line-height: 1.65;
           font-size: 0.875rem; /* 14px */
+          word-break: break-word;
+          overflow-wrap: anywhere;
+          max-width: 100%;
+          width: 100%;
         }
-        
+
+        .readme-content * {
+          max-width: 100%;
+          box-sizing: border-box;
+        }
 
         .readme-content h1,
         .readme-content h2,
@@ -151,6 +159,8 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
           margin-top: 2rem;
           margin-bottom: 0.875rem;
           line-height: 1.3;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .readme-content h1 { font-size: 1.625rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.5rem; }
         .readme-content h2 { font-size: 1.375rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.5rem; }
@@ -162,12 +172,16 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
         .readme-content p {
           margin-top: 0rem;
           margin-bottom: 1.25rem;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .readme-content a {
           color: #3b82f6;
           text-decoration: none;
           transition: color 0.15s ease-in-out;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .readme-content a:hover {
           color: #60a5fa;
@@ -190,6 +204,8 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
         .readme-content li {
           margin-top: 0.35rem;
           margin-bottom: 0.35rem;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .readme-content blockquote {
@@ -204,8 +220,11 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
         .readme-content pre {
           margin-top: 1.25rem;
           margin-bottom: 1.25rem;
-          padding: 1.25rem;
+          padding: 1rem;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          max-width: 100%;
+          box-sizing: border-box;
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
           font-size: 0.8125rem;
           background-color: rgba(0, 0, 0, 0.45);
@@ -221,6 +240,8 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
           background-color: rgba(255, 255, 255, 0.08);
           border-radius: 0.25rem;
           color: #e2e8f0;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .readme-content pre code {
           padding: 0;
@@ -228,6 +249,8 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
           color: inherit;
           background-color: transparent;
           border-radius: 0;
+          overflow-wrap: normal;
+          word-break: normal;
         }
 
         .readme-content table {
@@ -235,9 +258,11 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
           width: 100%;
           max-width: 100%;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
           margin-top: 1.25rem;
           margin-bottom: 1.25rem;
           border-collapse: collapse;
+          box-sizing: border-box;
         }
         .readme-content tr {
           border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -257,9 +282,13 @@ export function RepositoryReadme({ readmeHtml, repoOwner, repoName, repoDefaultB
           background-color: rgba(255, 255, 255, 0.04);
         }
 
-        .readme-content img {
+        .readme-content img,
+        .readme-content svg,
+        .readme-content iframe,
+        .readme-content video {
           display: inline-block;
-          max-width: 100%;
+          max-width: 100% !important;
+          height: auto;
           box-sizing: border-box;
           background-color: transparent;
           border-radius: 0.5rem;

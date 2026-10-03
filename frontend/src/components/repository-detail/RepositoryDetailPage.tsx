@@ -29,12 +29,10 @@ export function RepositoryDetailPage({ slug }: RepositoryDetailPageProps) {
   });
 
   const wrapLayout = (content: React.ReactNode) => (
-    <div className="flex flex-col flex-1">
-
-      <main className="mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-8 pt-0 pb-12 flex-1 w-full">
+    <div className="flex flex-col flex-1 w-full min-w-0 max-w-full overflow-x-clip">
+      <main className="mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-8 pt-0 pb-12 flex-1 w-full min-w-0 max-w-full">
         {content}
       </main>
-
     </div>
   );
 
@@ -47,7 +45,7 @@ export function RepositoryDetailPage({ slug }: RepositoryDetailPageProps) {
   }
 
   return wrapLayout(
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full min-w-0 max-w-full">
       <RepositoryBreadcrumb owner={repo.owner} name={repo.name} companySlug={repo.companySlug} />
       <RepositoryHeroCard repo={repo} />
       <RepositoryReadme 
