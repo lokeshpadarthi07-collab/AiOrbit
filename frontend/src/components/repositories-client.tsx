@@ -262,9 +262,9 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
   }
 
   return (
-    <div className="flex flex-col flex-1 bg-[#000000] text-white selection:bg-neutral-800 selection:text-white">
-      <main className="scroll-mt-28 w-full px-4 sm:px-6 lg:px-8 pt-2 pb-12 flex-1">
-        <div className={`mx-auto w-full max-w-[1440px] space-y-3 transition-opacity duration-150 ${isPlaceholderData ? "opacity-60" : "opacity-100"}`}>
+    <div className="flex flex-col flex-1 bg-[#000000] text-white selection:bg-neutral-800 selection:text-white w-full min-w-0 max-w-full overflow-x-clip">
+      <main className="scroll-mt-28 w-full px-4 sm:px-6 lg:px-8 pt-2 pb-12 flex-1 min-w-0 max-w-full">
+        <div className={`mx-auto w-full max-w-[1440px] space-y-3 min-w-0 max-w-full transition-opacity duration-150 ${isPlaceholderData ? "opacity-60" : "opacity-100"}`}>
           {/* Active Topic Filter Chip */}
           {selectedTopic && (
             <div className="flex items-center gap-2 mb-6 bg-white/[0.02] border border-white/[0.08] px-3.5 py-2 rounded-lg w-fit shadow-md animate-fade-in">
@@ -285,7 +285,7 @@ export function RepositoriesClient({ defaultCategory }: { defaultCategory?: stri
           {subCategories.length > 0 && (
             <div
               ref={subCatContainerRef}
-              className="mb-2 -mx-4 sm:mx-0 px-4 sm:px-0 flex flex-nowrap items-center justify-start gap-1.5 touch-scroll-x pb-2.5 scrollbar-none w-auto sm:w-full overflow-x-auto scroll-smooth"
+              className="mb-2 -mx-4 sm:mx-0 px-4 sm:px-0 flex flex-nowrap items-center justify-start gap-1.5 touch-scroll-x pb-2.5 scrollbar-none w-[calc(100%+2rem)] sm:w-full max-w-none overflow-x-auto scroll-smooth"
             >
               <button
                 ref={(el) => { subCatRefs.current["all"] = el; }}
