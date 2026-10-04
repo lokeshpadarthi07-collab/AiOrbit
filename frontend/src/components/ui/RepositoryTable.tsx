@@ -66,7 +66,7 @@ export function RepositoryTable({
 }: RepositoryTableProps) {
   return (
     <div 
-      className="w-full flex flex-col border border-[#232326]/60 rounded-xl bg-[#131316]/10"
+      className="w-full flex flex-col border border-[#232326]/60 rounded-xl bg-[#131316]/10 overflow-hidden"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
     >
       {/* Sticky Table Header */}

@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { fetchModelsCompare } from "@/lib/api";
 import type { ModelDetail } from "@/lib/types";
 import { formatModelType } from "@/lib/types";
+import { resolveCompanyLogo, resolveModelBrand } from "@/lib/companyLogos";
 
 const ROWS: { key: string; label: string; get: (m: ModelDetail) => string }[] = [
   {
@@ -110,22 +111,25 @@ export function ModelsCompareClient() {
                   <th className="px-4 py-3 text-[9.5px] font-mono font-semibold tracking-wider text-[#71717A] w-40">
                     SPEC
                   </th>
-                  {models.map((m) =>
-                    m ? (
+                  {models.map((m) => {
+                    if (!m) return null;
+                    const { companyName: compName, logoUrl: companyLogo } = resolveModelBrand(m);
+                    return (
                       <th key={m.id} className="px-4 py-3 min-w-[200px]">
                         <Link href={`/models/${m.id}`} className="group block">
                           <div className="flex items-center gap-2">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white text-xs font-bold text-neutral-900">
-                              {m.provider?.logoUrl ? (
+                              {companyLogo ? (
                                 <Image
-                                  src={m.provider.logoUrl}
-                                  alt=""
+                                  src={companyLogo}
+                                  alt={`${compName} logo`}
                                   width={32}
                                   height={32}
-                                  className="h-7 w-7 object-contain"
+                                  className="h-6 w-6 md:h-7 md:w-7 object-contain"
+                                  unoptimized
                                 />
                               ) : (
-                                m.name.charAt(0)
+                                compName.charAt(0).toUpperCase()
                               )}
                             </div>
                             <span className="text-[13px] font-semibold text-white group-hover:underline">
@@ -134,8 +138,8 @@ export function ModelsCompareClient() {
                           </div>
                         </Link>
                       </th>
-                    ) : null
-                  )}
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#232326]/60">

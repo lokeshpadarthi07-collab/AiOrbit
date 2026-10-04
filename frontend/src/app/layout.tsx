@@ -12,11 +12,23 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "AI Orbit — Discover the AI Ecosystem",
-    template: "%s | AI Orbit",
+    default: "AIOrbit - The Home of Everything AI.",
+    template: "%s | AIOrbit",
   },
   description:
-    "Discover, compare, and explore the best AI tools, companies, models, and repositories in the global ecosystem.",
+    "Discover the tools, companies, and technologies shaping the global AI ecosystem",
+  openGraph: {
+    title: "AIOrbit - The Home of Everything AI.",
+    description:
+      "Discover the tools, companies, and technologies shaping the global AI ecosystem",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AIOrbit - The Home of Everything AI.",
+    description:
+      "Discover the tools, companies, and technologies shaping the global AI ecosystem",
+  },
 };
 
 import { MainShell } from "@/components/MainShell";
