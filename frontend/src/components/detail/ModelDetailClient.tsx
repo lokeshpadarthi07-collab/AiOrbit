@@ -23,6 +23,7 @@ import { CategoryChip } from "@/components/CategoryChip";
 import { MOCK_MODELS_BY_ID } from "@/lib/mock/models";
 import { formatModelType } from "@/lib/types";
 import type { ModelDetail, AIModel } from "@/lib/types";
+import { resolveCompanyLogo, resolveModelBrand } from "@/lib/companyLogos";
 
 function cleanValue(value?: string | null) {
   const normalized = value?.trim();
@@ -41,8 +42,7 @@ function formatDate(value?: string | null) {
 }
 
 function resolveProviderLogo(src: string | null | undefined, name: string) {
-  if (name.trim().toLowerCase().includes("openai")) return "/logos/openai.svg";
-  return src;
+  return resolveCompanyLogo(name, src);
 }
 
 function getDetailedDescription(model: ModelDetail, companyName: string) {
@@ -138,7 +138,7 @@ function SectionTitle({ title, count }: { title: string; count?: number }) {
 }
 
 function RelatedCard({ model }: { model: AIModel }) {
-  const company = model.provider?.name || model.creator || "Unknown provider";
+  const { companyName: company, logoUrl: relatedLogo } = resolveModelBrand(model);
   const detail = formatModelType(model.modelType) || model.modality || "General";
   return (
     <Link
@@ -147,7 +147,7 @@ function RelatedCard({ model }: { model: AIModel }) {
     >
       <span className="absolute inset-y-0 left-0 w-0.5 bg-[#6E56CF] opacity-0 transition-opacity group-hover:opacity-100" />
       <div className="relative flex items-center gap-3">
-        <ProviderLogo src={model.provider?.logoUrl} name={company} size="small" />
+        <ProviderLogo src={relatedLogo || model.provider?.logoUrl} name={company} size="small" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-white">{model.name}</p>
           <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px] text-[#8B8B94]">
@@ -303,7 +303,7 @@ export function ModelDetailClient() {
     return null;
   }
 
-  const companyName = model.provider?.name || model.creator || "Unknown provider";
+  const { companyName, logoUrl: heroLogo } = resolveModelBrand(model);
   const typeLabel = formatModelType(model.modelType) || model.modality || "Not available";
   const tasks = (model.tasks ?? [])
     .map((entry) => entry?.task)
@@ -375,7 +375,7 @@ export function ModelDetailClient() {
           <div className="relative p-4 sm:p-5">
             <div className="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[#6E56CF]/10 blur-3xl" />
             <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 lg:grid-cols-[80px_minmax(0,1fr)_330px] lg:gap-5">
-              <ProviderLogo src={model.provider?.logoUrl} name={companyName} />
+              <ProviderLogo src={heroLogo || model.provider?.logoUrl} name={companyName} />
 
               <div className="min-w-0 pt-0.5 lg:grid lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-5">
                 <div className="min-w-0">
