@@ -9,6 +9,7 @@
     "ingest": "tsx scripts/ingest.ts",
     "sync-repos": "tsx scripts/sync-repositories.ts",
     "seed": "tsx prisma/seed.ts",
+    "seed-logos": "tsx prisma/seed-logos.ts",
     "seed-mcp": "tsx prisma/seed-mcp.ts",
     "seed-mcp-subcategories": "tsx prisma/seed-mcp-subcategories.ts",
     "seed-repo-subcategories": "tsx prisma/seed-repository-subcategories.ts",

@@ -1,4 +1,4 @@
-﻿import { cachedFetchJson, prefetchUrl, setInCache, getFromCache } from "./api-cache";
+import { cachedFetchJson, prefetchUrl, setInCache, getFromCache } from "./api-cache";
 export { cachedFetchJson, prefetchUrl, setInCache, getFromCache };
 
 /**
@@ -238,6 +238,30 @@ export async function fetchModelsCompare(ids: string[]): Promise<import("./types
   const url = `${API_URL}/api/v1/models/compare?ids=${encodeURIComponent(ids.join(","))}`;
   const data = await cachedFetchJson<ModelsCompareResponse | null>(url, null, { ttlMs: 5 * 60 * 1000 });
   return data?.items ?? [];
+}
+
+/** Extracts the database logo for a specific AI model from /api/v1/models/:id/logo */
+export async function fetchModelLogo(modelIdOrSlug: string): Promise<import("./types").ModelLogoExtractionResult | null> {
+  const url = `${API_URL}/api/v1/models/${encodeURIComponent(modelIdOrSlug)}/logo`;
+  return cachedFetchJson<import("./types").ModelLogoExtractionResult | null>(url, null, { ttlMs: 15 * 60 * 1000 });
+}
+
+/** Extracts all brand logos stored in the database from /api/v1/models/logos */
+export async function fetchModelLogos(params: { search?: string; category?: string; page?: number; limit?: number } = {}): Promise<{ items: import("./types").ModelLogo[]; pagination: any }> {
+  const url = new URL(`${API_URL}/api/v1/models/logos`);
+  if (params.search) url.searchParams.set("search", params.search);
+  if (params.category) url.searchParams.set("category", params.category);
+  if (params.page) url.searchParams.set("page", String(params.page));
+  if (params.limit) url.searchParams.set("limit", String(params.limit));
+
+  const empty = { items: [], pagination: { page: 1, limit: 100, total: 0, totalPages: 1, hasMore: false } };
+  return cachedFetchJson(url.toString(), empty, { ttlMs: 30 * 60 * 1000 });
+}
+
+/** Extracts a specific logo by slug from database from /api/v1/models/logos/:slug */
+export async function fetchLogoBySlug(slug: string): Promise<import("./types").ModelLogo | null> {
+  const url = `${API_URL}/api/v1/models/logos/${encodeURIComponent(slug)}`;
+  return cachedFetchJson<import("./types").ModelLogo | null>(url, null, { ttlMs: 30 * 60 * 1000 });
 }
 
 export async function fetchAllNews(): Promise<any[]> {

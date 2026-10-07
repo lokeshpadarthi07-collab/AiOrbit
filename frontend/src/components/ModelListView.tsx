@@ -497,7 +497,9 @@ function ModelRow({
   isCompareFull: boolean;
   onToggleCompare: (model: AIModel) => void;
 }) {
-  const { companyName, logoUrl: companyLogo } = resolveModelBrand(model);
+  const { companyName, logoUrl: resolvedLogo } = resolveModelBrand(model);
+  const localFallbackLogo = resolveCompanyLogo(companyName);
+  const [currentLogo, setCurrentLogo] = useState<string | null>(resolvedLogo || localFallbackLogo);
   const [logoFailed, setLogoFailed] = useState(false);
   const typeLabels = (
     formatModelType(model.modelType) ||
@@ -510,8 +512,17 @@ function ModelRow({
     .slice(0, 2);
 
   useEffect(() => {
+    setCurrentLogo(resolvedLogo || localFallbackLogo);
     setLogoFailed(false);
-  }, [companyLogo]);
+  }, [resolvedLogo, localFallbackLogo]);
+
+  const handleImageError = () => {
+    if (currentLogo && currentLogo !== localFallbackLogo && localFallbackLogo) {
+      setCurrentLogo(localFallbackLogo);
+    } else {
+      setLogoFailed(true);
+    }
+  };
   const primaryTask = model.primaryTask ?? null;
   const openSource =
     model.openSource === undefined ? undefined : isTruthy(model.openSource);
@@ -535,16 +546,16 @@ function ModelRow({
       {/* Mobile: keep the first column (logo + model name) fixed while the rest scrolls. */}
       <div className="sticky left-0 z-20 flex h-full min-w-0 items-center gap-2 bg-[#000000] pr-2 shadow-[10px_0_10px_-10px_rgba(0,0,0,0.6)] transition-colors group-hover:bg-[#18181C] md:hidden">
         <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
-          {companyLogo && !logoFailed ? (
+          {currentLogo && !logoFailed ? (
             <img
-              src={companyLogo}
+              src={currentLogo}
               alt={`${companyName} logo`}
               width={40}
               height={40}
               loading="lazy"
               decoding="async"
               className="h-6 w-6 md:h-9 md:w-9 object-contain"
-              onError={() => setLogoFailed(true)}
+              onError={handleImageError}
             />
           ) : (
             <span
@@ -573,16 +584,16 @@ function ModelRow({
       {/* Desktop: the provider logo belongs to the first column beside the model. */}
       <div className="hidden min-w-0 items-center gap-2.5 pr-2 md:flex">
         <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
-          {companyLogo && !logoFailed ? (
+          {currentLogo && !logoFailed ? (
             <img
-              src={companyLogo}
+              src={currentLogo}
               alt={`${companyName} logo`}
               width={40}
               height={40}
               loading="lazy"
               decoding="async"
               className="h-6 w-6 md:h-9 md:w-9 object-contain"
-              onError={() => setLogoFailed(true)}
+              onError={handleImageError}
             />
           ) : (
             <span
