@@ -173,12 +173,28 @@ export class CompaniesService {
       }),
     ]);
 
-    const formattedCompanies = companies.map((c) => ({
-      ...c,
-      valuation: c.valuation !== null ? c.valuation.toString() : null,
-      fundingRaised:
-        c.fundingRaised !== null ? c.fundingRaised.toString() : null,
-    }));
+    const formattedCompanies = companies.map((c) => {
+      let logoUrl = c.logoUrl;
+      if (!logoUrl && c.website) {
+        try {
+          const urlStr = c.website.startsWith('http') ? c.website : `https://${c.website}`;
+          const domain = new URL(urlStr).hostname;
+          if (domain) {
+            logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+          }
+        } catch {}
+      }
+      if (!logoUrl && c.slug) {
+        logoUrl = `https://github.com/${c.slug}.png`;
+      }
+      return {
+        ...c,
+        logoUrl,
+        valuation: c.valuation !== null ? c.valuation.toString() : null,
+        fundingRaised:
+          c.fundingRaised !== null ? c.fundingRaised.toString() : null,
+      };
+    });
 
     return {
       companies: formattedCompanies,
@@ -327,8 +343,23 @@ export class CompaniesService {
       }),
     ]);
 
+    let logoUrl = company.logoUrl;
+    if (!logoUrl && company.website) {
+      try {
+        const urlStr = company.website.startsWith('http') ? company.website : `https://${company.website}`;
+        const domain = new URL(urlStr).hostname;
+        if (domain) {
+          logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+        }
+      } catch {}
+    }
+    if (!logoUrl && company.slug) {
+      logoUrl = `https://github.com/${company.slug}.png`;
+    }
+
     return {
       ...company,
+      logoUrl,
       robots,
       devices,
       repositories,

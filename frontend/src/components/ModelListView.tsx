@@ -55,10 +55,7 @@ function isTruthy(...vals: Array<unknown>): boolean {
   return vals.some((v) => v === true || v === "true" || v === 1 || v === "1");
 }
 
-function resolveProviderLogo(src: string | null | undefined, name: string) {
-  if (name.trim().toLowerCase().includes("openai")) return "/logos/openai.svg";
-  return src ?? null;
-}
+import { resolveProviderLogo, resolveWebsiteLogo } from "@/lib/model-logos";
 
 function BoolPill({
   value,
@@ -168,9 +165,8 @@ function TypeHeaderFilter({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`inline-flex items-center gap-1 text-[9.5px] font-mono font-semibold tracking-wider transition-colors ${
-          value ? "text-white" : "text-[#71717A] hover:text-white"
-        }`}
+        className={`inline-flex items-center gap-1 text-[9.5px] font-mono font-semibold tracking-wider transition-colors ${value ? "text-white" : "text-[#71717A] hover:text-white"
+          }`}
       >
         TYPE
         <ChevronDown
@@ -189,9 +185,8 @@ function TypeHeaderFilter({
               onChange("");
               setOpen(false);
             }}
-            className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${
-              !value ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
-            }`}
+            className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${!value ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
+              }`}
           >
             All types
           </button>
@@ -205,9 +200,8 @@ function TypeHeaderFilter({
                 onChange(t);
                 setOpen(false);
               }}
-              className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${
-                value === t ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
-              }`}
+              className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${value === t ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
+                }`}
             >
               {formatModelType(t)}
             </button>
@@ -268,9 +262,8 @@ function ProviderHeaderFilter({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`inline-flex items-center gap-1 text-[9.5px] font-mono font-semibold tracking-wider transition-colors ${
-          value ? "text-white" : "text-[#71717A] hover:text-white"
-        }`}
+        className={`inline-flex items-center gap-1 text-[9.5px] font-mono font-semibold tracking-wider transition-colors ${value ? "text-white" : "text-[#71717A] hover:text-white"
+          }`}
       >
         COMPANY
         <ChevronDown
@@ -299,44 +292,52 @@ function ProviderHeaderFilter({
             </div>
           </div>
           <div className="max-h-56 overflow-y-auto py-1 scrollbar-none">
-          <button
-            type="button"
-            role="option"
-            aria-selected={!value}
-            onClick={() => {
-              onChange("");
-              setOpen(false);
-              setQuery("");
-            }}
-            className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${
-              !value ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
-            }`}
-          >
-            All companies
-          </button>
-          {filteredOptions.map((p) => (
             <button
-              key={p.slug}
               type="button"
               role="option"
-              aria-selected={value === p.slug}
+              aria-selected={!value}
               onClick={() => {
-                onChange(p.slug);
+                onChange("");
                 setOpen(false);
                 setQuery("");
               }}
-              className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${
-                value === p.slug ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
-              }`}
+              className={`block w-full px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${!value ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
+                }`}
             >
-              {p.name}
+              All companies
             </button>
-          ))}
-          {filteredOptions.length === 0 && (
-            <p className="px-3 py-3 text-center text-[11px] font-medium normal-case tracking-normal text-[#71717A]">
-              No companies found
-            </p>
-          )}
+            {filteredOptions.map((p) => {
+              const pLogo = resolveProviderLogo(null, p.name);
+              return (
+                <button
+                  key={p.slug}
+                  type="button"
+                  role="option"
+                  aria-selected={value === p.slug}
+                  onClick={() => {
+                    onChange(p.slug);
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] font-medium normal-case tracking-normal transition-colors ${value === p.slug ? "bg-[#18181C] text-white" : "text-[#A1A1AA] hover:bg-[#18181C] hover:text-white"
+                    }`}
+                >
+                  <div className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded bg-white p-0.5">
+                    {pLogo ? (
+                      <img src={pLogo} alt="" className="h-3 w-3 object-contain" />
+                    ) : (
+                      <span className="text-[9px] font-bold text-neutral-900">{p.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="truncate">{p.name}</span>
+                </button>
+              );
+            })}
+            {filteredOptions.length === 0 && (
+              <p className="px-3 py-3 text-center text-[11px] font-medium normal-case tracking-normal text-[#71717A]">
+                No companies found
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -497,9 +498,9 @@ function ModelRow({
   isCompareFull: boolean;
   onToggleCompare: (model: AIModel) => void;
 }) {
-  const { companyName, logoUrl: resolvedLogo } = resolveModelBrand(model);
+  const { companyName, logoUrl } = resolveModelBrand(model);
   const localFallbackLogo = resolveCompanyLogo(companyName);
-  const [currentLogo, setCurrentLogo] = useState<string | null>(resolvedLogo || localFallbackLogo);
+  const [currentLogo, setCurrentLogo] = useState<string | null>(logoUrl || localFallbackLogo);
   const [logoFailed, setLogoFailed] = useState(false);
   const typeLabels = (
     formatModelType(model.modelType) ||
@@ -512,9 +513,9 @@ function ModelRow({
     .slice(0, 2);
 
   useEffect(() => {
-    setCurrentLogo(resolvedLogo || localFallbackLogo);
+    setCurrentLogo(logoUrl || localFallbackLogo);
     setLogoFailed(false);
-  }, [resolvedLogo, localFallbackLogo]);
+  }, [logoUrl, localFallbackLogo]);
 
   const handleImageError = () => {
     if (currentLogo && currentLogo !== localFallbackLogo && localFallbackLogo) {
@@ -545,22 +546,22 @@ function ModelRow({
 
       {/* Mobile: keep the first column (logo + model name) fixed while the rest scrolls. */}
       <div className="sticky left-0 z-20 flex h-full min-w-0 items-center gap-2 bg-[#000000] pr-2 shadow-[10px_0_10px_-10px_rgba(0,0,0,0.6)] transition-colors group-hover:bg-[#18181C] md:hidden">
-        <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1">
           {currentLogo && !logoFailed ? (
             <img
               src={currentLogo}
               alt={`${companyName} logo`}
-              width={40}
-              height={40}
+              width={24}
+              height={24}
               loading="lazy"
               decoding="async"
-              className="h-6 w-6 md:h-9 md:w-9 object-contain"
+              className="h-6 w-6 object-contain"
               onError={handleImageError}
             />
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
+              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-xs font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
@@ -583,7 +584,7 @@ function ModelRow({
 
       {/* Desktop: the provider logo belongs to the first column beside the model. */}
       <div className="hidden min-w-0 items-center gap-2.5 pr-2 md:flex">
-        <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white group-hover:border-[#6E56CF] transition-colors">
+        <div className="flex h-8 w-8 md:h-11 md:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1 group-hover:border-[#6E56CF] transition-colors">
           {currentLogo && !logoFailed ? (
             <img
               src={currentLogo}
@@ -598,7 +599,7 @@ function ModelRow({
           ) : (
             <span
               aria-label={`${companyName} logo`}
-              className="flex h-6 w-6 md:h-9 md:w-9 items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
+              className="flex h-full w-full items-center justify-center rounded-md bg-neutral-100 text-xs md:text-sm font-bold text-neutral-900"
             >
               {companyName.charAt(0).toUpperCase()}
             </span>
@@ -615,8 +616,24 @@ function ModelRow({
         </div>
       </div>
 
-      {/* Company column contains text only; its logo is shown in the first column. */}
-      <div className="min-w-0 truncate text-[12px] text-white">{companyName}</div>
+      {/* Company column */}
+      <div className="min-w-0 flex items-center gap-2 truncate text-[12px] text-white">
+        {currentLogo && !logoFailed && (
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded border border-[#232326]/60 bg-white p-0.5">
+            <img
+              src={currentLogo}
+              alt=""
+              width={16}
+              height={16}
+              loading="lazy"
+              decoding="async"
+              className="h-3.5 w-3.5 object-contain"
+              onError={handleImageError}
+            />
+          </div>
+        )}
+        <span className="truncate">{companyName}</span>
+      </div>
 
       <div className="flex min-w-0 flex-wrap gap-1.5 overflow-hidden">
         {typeLabels.length > 0 ? (
@@ -649,13 +666,12 @@ function ModelRow({
             e.stopPropagation();
             onToggleCompare(model);
           }}
-          className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
-            isSelected
+          className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-[10px] font-mono font-semibold transition-colors ${isSelected
               ? "border-transparent text-black"
               : !isSelected && isCompareFull
-              ? "cursor-not-allowed border-[#232326]/40 bg-[#131316] text-[#4a4a4d]"
-              : "border-[#232326]/60 bg-[#18181C] text-[#A1A1AA] hover:border-[#3a3a3d] hover:text-white"
-          }`}
+                ? "cursor-not-allowed border-[#232326]/40 bg-[#131316] text-[#4a4a4d]"
+                : "border-[#232326]/60 bg-[#18181C] text-[#A1A1AA] hover:border-[#3a3a3d] hover:text-white"
+            }`}
           style={isSelected ? { backgroundColor: "var(--color-signal, #6E56CF)" } : undefined}
           aria-label={isSelected ? `Remove ${model.name} from compare` : `Add ${model.name} to compare`}
           aria-pressed={isSelected}
@@ -711,16 +727,19 @@ export function ModelListView({
               key={i}
               className={`grid ${COL_TEMPLATE} ${COL_MIN_WIDTH} items-center gap-2.5 px-4 py-2.5`}
             >
-              <div className="sticky left-0 z-20 h-4 w-28 animate-pulse rounded bg-[#18181C] md:hidden" />
-              <div className="h-3 w-full max-w-56 animate-pulse rounded bg-[#18181C] md:hidden" />
-              <div className="hidden min-w-0 space-y-1.5 pr-2 md:block">
-                <div className="h-3 w-40 animate-pulse rounded bg-[#18181C]" />
-                <div className="h-2 w-full max-w-64 animate-pulse rounded bg-[#18181C]" />
-              </div>
-              <div className="flex items-center gap-2">
+              <div className="sticky left-0 z-20 flex items-center gap-2 md:hidden">
                 <div className="h-8 w-8 shrink-0 animate-pulse rounded-lg bg-[#18181C]" />
-                <div className="h-3 w-20 animate-pulse rounded bg-[#18181C]" />
+                <div className="h-4 w-20 animate-pulse rounded bg-[#18181C]" />
               </div>
+              <div className="h-3 w-full max-w-56 animate-pulse rounded bg-[#18181C] md:hidden" />
+              <div className="hidden min-w-0 items-center gap-2.5 pr-2 md:flex">
+                <div className="h-8 w-8 md:h-11 md:w-11 shrink-0 animate-pulse rounded-lg bg-[#18181C]" />
+                <div className="space-y-1.5 min-w-0">
+                  <div className="h-3 w-40 animate-pulse rounded bg-[#18181C]" />
+                  <div className="h-2 w-full max-w-64 animate-pulse rounded bg-[#18181C]" />
+                </div>
+              </div>
+              <div className="h-3 w-20 animate-pulse rounded bg-[#18181C] hidden md:block" />
               <div className="h-4 w-16 animate-pulse rounded bg-[#18181C]" />
               <div className="h-3 w-24 animate-pulse rounded bg-[#18181C]" />
               <div className="h-3 w-20 animate-pulse rounded bg-[#18181C]" />
@@ -750,9 +769,8 @@ export function ModelListView({
   return (
     <>
       <div
-        className={`flex flex-col rounded-lg border border-[#232326]/60 bg-[#131316]/10 overflow-hidden ${
-          compareSet.length > 0 ? "mb-24" : ""
-        }`}
+        className={`flex flex-col rounded-lg border border-[#232326]/60 bg-[#131316]/10 overflow-hidden ${compareSet.length > 0 ? "mb-24" : ""
+          }`}
       >
         <div className="overflow-x-auto touch-scroll-x">
           <div className="border-b border-[#232326]/60 bg-[#131316]/40">
@@ -818,9 +836,8 @@ export function ModelListView({
                 return (
                   <div
                     key={i}
-                    className={`flex flex-1 items-center gap-1.5 sm:gap-2 rounded-lg border px-2 sm:px-2.5 py-1.5 min-w-0 ${
-                      model ? "border-[#232326]/70 bg-[#18181C]" : "border-dashed border-[#232326]/50"
-                    }`}
+                    className={`flex flex-1 items-center gap-1.5 sm:gap-2 rounded-lg border px-2 sm:px-2.5 py-1.5 min-w-0 ${model ? "border-[#232326]/70 bg-[#18181C]" : "border-dashed border-[#232326]/50"
+                      }`}
                   >
                     {model ? (
                       <>
@@ -848,11 +865,10 @@ export function ModelListView({
               type="button"
               onClick={goToCompare}
               disabled={compareSet.length !== MAX_COMPARE}
-              className={`shrink-0 inline-flex items-center gap-1 sm:gap-1.5 rounded-lg px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-[12px] font-semibold transition-colors ${
-                compareSet.length === MAX_COMPARE
+              className={`shrink-0 inline-flex items-center gap-1 sm:gap-1.5 rounded-lg px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-[12px] font-semibold transition-colors ${compareSet.length === MAX_COMPARE
                   ? "text-white shadow-md shadow-[#6E56CF]/30"
                   : "cursor-not-allowed bg-[#18181C] text-[#4a4a4d]"
-              }`}
+                }`}
               style={
                 compareSet.length === MAX_COMPARE
                   ? { backgroundColor: "var(--color-signal, #6E56CF)" }

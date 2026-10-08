@@ -124,6 +124,7 @@ export class RepositoriesService {
 
     const itemsWithCompany = pageItems.map(item => ({
       ...item,
+      ownerAvatarUrl: item.logoUrl || item.ownerAvatarUrl || (item.owner ? `https://github.com/${item.owner}.png` : null),
       subCategories: Array.isArray(item.subCategories) ? item.subCategories.map((sc: any) => sc.subCategory || sc) : [],
       companySlug: companyMap.get(item.owner.toLowerCase()) || null
     }));
@@ -164,6 +165,7 @@ export class RepositoriesService {
 
     return {
       ...repo,
+      ownerAvatarUrl: repo.logoUrl || repo.ownerAvatarUrl || (repo.owner ? `https://github.com/${repo.owner}.png` : null),
       readmeHtml,
       readmeFetchedAt: readmeHtml !== null ? new Date().toISOString() : null,
       companySlug: company?.slug || null
@@ -337,7 +339,7 @@ export class RepositoriesService {
           owner,
           displayName: matchingCompany.name,
           companySlug: matchingCompany.slug,
-          logoUrl: matchingCompany.logoUrl,
+          logoUrl: matchingCompany.logoUrl || `https://github.com/${owner}.png`,
           repositoryCount,
         };
       }
@@ -346,7 +348,7 @@ export class RepositoriesService {
         owner,
         displayName: owner,
         companySlug: null,
-        logoUrl: null,
+        logoUrl: `https://github.com/${owner}.png`,
         repositoryCount,
       };
     });

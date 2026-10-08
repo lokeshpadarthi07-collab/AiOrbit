@@ -41,8 +41,18 @@ function formatDate(value?: string | null) {
   }).format(parsed);
 }
 
-function resolveProviderLogo(src: string | null | undefined, name: string) {
-  return resolveCompanyLogo(name, src);
+function resolveProviderLogo(
+  src: string | null | undefined,
+  name: string,
+  websiteUrl?: string | null,
+  modelName?: string | null
+) {
+  return (
+    resolveCompanyLogo(name, src) ||
+    (modelName ? resolveModelBrand({ name: modelName, creator: name }).logoUrl : null) ||
+    src ||
+    null
+  );
 }
 
 function getDetailedDescription(model: ModelDetail, companyName: string) {
@@ -74,14 +84,18 @@ function getRelatedDescription(model: AIModel) {
 function ProviderLogo({
   src,
   name,
+  websiteUrl,
+  modelName,
   size = "large",
 }: {
   src?: string | null;
   name: string;
+  websiteUrl?: string | null;
+  modelName?: string | null;
   size?: "small" | "large";
 }) {
   const [failed, setFailed] = useState(false);
-  const resolvedSrc = resolveProviderLogo(src, name);
+  const resolvedSrc = resolveProviderLogo(src, name, websiteUrl, modelName);
   const boxClass =
     size === "large"
       ? "h-16 w-16 rounded-xl sm:h-20 sm:w-20 sm:rounded-2xl"
@@ -375,7 +389,12 @@ export function ModelDetailClient() {
           <div className="relative p-4 sm:p-5">
             <div className="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[#6E56CF]/10 blur-3xl" />
             <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 lg:grid-cols-[80px_minmax(0,1fr)_330px] lg:gap-5">
-              <ProviderLogo src={heroLogo || model.provider?.logoUrl} name={companyName} />
+              <ProviderLogo
+                src={heroLogo || model.provider?.logoUrl}
+                name={companyName}
+                websiteUrl={modelWebsiteUrl}
+                modelName={model.name}
+              />
 
               <div className="min-w-0 pt-0.5 lg:grid lg:grid-cols-[170px_minmax(0,1fr)] lg:gap-5">
                 <div className="min-w-0">

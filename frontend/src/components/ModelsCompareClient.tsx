@@ -8,8 +8,7 @@ import ArrowLeft from "lucide-react/dist/esm/icons/arrow-left";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { fetchModelsCompare } from "@/lib/api";
-import type { ModelDetail } from "@/lib/types";
-import { formatModelType } from "@/lib/types";
+import { formatModelType, type ModelDetail } from "@/lib/types";
 import { resolveCompanyLogo, resolveModelBrand } from "@/lib/companyLogos";
 
 const ROWS: { key: string; label: string; get: (m: ModelDetail) => string }[] = [
@@ -118,7 +117,7 @@ export function ModelsCompareClient() {
                       <th key={m.id} className="px-4 py-3 min-w-[200px]">
                         <Link href={`/models/${m.id}`} className="group block">
                           <div className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white text-xs font-bold text-neutral-900">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white p-1 text-xs font-bold text-neutral-900">
                               {companyLogo ? (
                                 <Image
                                   src={companyLogo}

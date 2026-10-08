@@ -191,8 +191,8 @@ export type Company = {
   upvotes?: number;
   impressions?: number;
   devices?: any[];
-repositories?: any[];
-robots?: any[];
+  repositories?: any[];
+  robots?: any[];
   tools?: {
     id: string;
     slug: string;
@@ -292,6 +292,7 @@ export type AIModel = {
   modality: string;
   description: string;
   creator: string;
+  websiteUrl?: string | null;
   parameterSize: string;
   contextWindow: string;
   releaseDate: string;
