@@ -1,4 +1,4 @@
-﻿import { cachedFetchJson, prefetchUrl, setInCache, getFromCache } from "./api-cache";
+import { cachedFetchJson, prefetchUrl, setInCache, getFromCache } from "./api-cache";
 export { cachedFetchJson, prefetchUrl, setInCache, getFromCache };
 
 /**
@@ -440,6 +440,7 @@ export interface MCPQuery {
   search?: string;
   category?: string;
   subCategory?: string;
+  pricingType?: string;
   type?: "SERVER" | "CLIENT";
   sortBy?: string;
 }
@@ -451,6 +452,7 @@ export async function fetchMCPItems(params: MCPQuery = {}): Promise<MCPListRespo
   if (params.search) url.searchParams.set("search", params.search);
   if (params.category) url.searchParams.set("category", params.category);
   if (params.subCategory) url.searchParams.set("subCategory", params.subCategory);
+  if (params.pricingType) url.searchParams.set("pricingType", params.pricingType);
   if (params.type) url.searchParams.set("type", params.type);
   if (params.sortBy) url.searchParams.set("sortBy", params.sortBy);
 

@@ -57,24 +57,22 @@ type ToolListViewProps = {
   skeletonRows?: number;
 };
 
-/** Every entity shown in the unified feed must have a destination detail page.
- * Unknown entity types are deliberately omitted instead of linking to a 404. */
+/** Every entity shown in the unified feed must have a destination detail page. */
 function getDetailUrl(tool: ListTool): string | null {
-  const slug = tool.slug;
-  if (!slug && tool.entityType !== "MODEL") return null;
+  const slug = tool.slug || tool.id || (tool.name ? tool.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "");
+  if (!slug && tool.entityType !== "MODEL") return "/";
 
   switch (tool.entityType ?? "TOOL") {
     case "TOOL": return `/p/tools/${slug}`;
-    case "COMPANY": return `/companies/${slug}`;
-    case "MODEL": return tool.id ? `/models/${tool.id}` : null;
-    // The current News detail endpoint is unavailable for the local schema.
-    // Do not show these rows in the unified New feed until it can resolve.
-    case "NEWS": return null;
+    case "COMPANY": return `/p/companies/${slug}`;
+    case "MODEL": return `/models/${tool.slug || tool.id || slug}`;
+    case "NEWS": return `/p/news/${slug}`;
     case "VIDEO": return `/p/videos/${slug}`;
     case "ROBOT": return `/p/robots/${slug}`;
     case "DEVICE": return `/p/devices/${slug}`;
     case "REPOSITORY": return `/p/repositories/${slug}`;
-    default: return null;
+    case "MCP": return `/p/mcp/${slug}`;
+    default: return `/p/tools/${slug}`;
   }
 }
 

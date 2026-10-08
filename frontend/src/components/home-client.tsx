@@ -22,9 +22,7 @@ export function HomeClient() {
   });
 
   const showParam = searchParams.get("show");
-  // Only include entity types whose detail pages are currently available.
-  // News remains accessible from its dedicated News section.
-  const show = showParam !== null ? showParam : "tools,devices,robots,models";
+  const show = showParam !== null ? showParam : "tools,companies,videos,repositories,devices,robots,news,models";
   const sort = searchParams.get("sort") || undefined;
   const pricing = searchParams.get("pricing") || undefined;
 

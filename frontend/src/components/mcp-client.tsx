@@ -66,6 +66,8 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
   const router = useRouter();
 
   const q = searchParams.get("q") ?? "";
+  const sortParam = searchParams.get("sort") || "";
+  const pricingParam = searchParams.get("pricing") || "";
 
   const initialSub = defaultSubCategory || defaultCategory || searchParams.get("subCategory") || searchParams.get("category") || "";
   const [activeSubCategory, setActiveSubCategory] = useState<string>(initialSub);
@@ -76,7 +78,15 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
   const subCatContainerRef = useRef<HTMLDivElement>(null);
   const subCatRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-
+  const sortBy = React.useMemo(() => {
+    switch (sortParam) {
+      case "trending": return "trending";
+      case "popular": return "most-upvoted";
+      case "top-rated": return "top-rated";
+      case "newest": return "recently-updated";
+      default: return undefined;
+    }
+  }, [sortParam]);
 
   useEffect(() => {
     const currentParam = searchParams.get("subCategory") || searchParams.get("category") || "";
@@ -85,6 +95,19 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
       setCurrentPage(1);
     }
   }, [searchParams]);
+
+  const prevFilterRef = useRef({ sub: activeSubCategory, sort: sortParam, pricing: pricingParam, q });
+  useEffect(() => {
+    if (
+      prevFilterRef.current.sub !== activeSubCategory ||
+      prevFilterRef.current.sort !== sortParam ||
+      prevFilterRef.current.pricing !== pricingParam ||
+      prevFilterRef.current.q !== q
+    ) {
+      prevFilterRef.current = { sub: activeSubCategory, sort: sortParam, pricing: pricingParam, q };
+      setCurrentPage(1);
+    }
+  }, [activeSubCategory, sortParam, pricingParam, q]);
 
   useEffect(() => {
     const container = subCatContainerRef.current;
@@ -222,6 +245,8 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
         pageSize,
         q,
         subCategory: activeSubCategory,
+        sort: sortParam,
+        pricing: pricingParam,
       },
     ],
     queryFn: async () => {
@@ -232,6 +257,8 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
 
       if (q) apiParams.search = q;
       if (activeSubCategory) apiParams.subCategory = activeSubCategory;
+      if (sortBy) apiParams.sortBy = sortBy;
+      if (pricingParam) apiParams.pricingType = pricingParam;
 
       return fetchMCPItems(apiParams);
     },
@@ -241,23 +268,64 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
     staleTime: 10 * 60 * 1000,
   });
 
-  const totalCount = (data as any)?.totalCount || (data as any)?.total || ((data as any)?.items && (data as any).items.length > 0 ? (data as any).items.length : FALLBACK_MCP_ITEMS.length);
+  const filteredFallbackItems = React.useMemo(() => {
+    let result = [...FALLBACK_MCP_ITEMS];
+
+    if (activeSubCategory) {
+      const normSub = activeSubCategory.toLowerCase().trim();
+      result = result.filter((item) =>
+        item.subCategories?.some((s) => s.slug?.toLowerCase() === normSub || s.name?.toLowerCase() === normSub) ||
+        item.categories?.some((c) => c.slug?.toLowerCase() === normSub || c.name?.toLowerCase() === normSub)
+      );
+    }
+
+    if (q) {
+      const normQ = q.toLowerCase().trim();
+      result = result.filter((item) =>
+        item.name.toLowerCase().includes(normQ) ||
+        item.shortDescription?.toLowerCase().includes(normQ) ||
+        item.providerName?.toLowerCase().includes(normQ)
+      );
+    }
+
+    if (pricingParam) {
+      result = result.filter((item) => item.pricingType === pricingParam);
+    }
+
+    if (sortBy === "trending") {
+      result.sort((a, b) => (b.monthlyVisits || 0) - (a.monthlyVisits || 0));
+    } else if (sortBy === "most-upvoted") {
+      result.sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0));
+    } else if (sortBy === "top-rated") {
+      result.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+    } else if (sortBy === "recently-updated") {
+      result.sort((a, b) => {
+        const dateA = a.launchDate ? new Date(a.launchDate).getTime() : 0;
+        const dateB = b.launchDate ? new Date(b.launchDate).getTime() : 0;
+        return dateB - dateA;
+      });
+    }
+
+    return result;
+  }, [activeSubCategory, q, pricingParam, sortBy]);
+
+  const hasApiData = Array.isArray((data as any)?.items) && (data as any).items.length > 0;
+  const totalCount = hasApiData
+    ? ((data as any)?.totalCount ?? (data as any)?.total ?? (data as any).items.length)
+    : (data as any)?.total ?? filteredFallbackItems.length;
+
   const totalPages = (data as any)?.totalPages || Math.max(1, Math.ceil(totalCount / pageSize));
 
   const items = React.useMemo(() => {
-    const fetchedItems = (data as any)?.items || [];
+    const fetchedItems = (data as any)?.items;
 
     // Use fallback data when API returns nothing (e.g. local dev with empty DB)
-    const sourceItems = fetchedItems.length > 0
+    const sourceItems = Array.isArray(fetchedItems) && fetchedItems.length > 0
       ? fetchedItems
-      : FALLBACK_MCP_ITEMS.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+      : filteredFallbackItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     return sourceItems
-      .filter((item: any) => (
-        typeof item.logoUrl === "string" &&
-        item.logoUrl.trim() !== "" &&
-        !invalidLogoIds.has(item.id)
-      ))
+      .filter((item: any) => !invalidLogoIds.has(item.id))
       .sort((a: any, b: any) => {
         const getScore = (item: any) => {
           if (item.logoUrl && item.shortDescription && item.shortDescription.trim() !== "") return 2;
@@ -266,7 +334,7 @@ export function MCPClient({ defaultCategory = "", defaultSubCategory = "" }: { d
         };
         return getScore(b) - getScore(a);
       });
-  }, [data, invalidLogoIds, currentPage]);
+  }, [data, filteredFallbackItems, invalidLogoIds, currentPage, pageSize]);
 
   return (
     <div id="mcp" className="scroll-mt-28 w-full px-4 sm:px-6 lg:px-8 pt-2 pb-8 flex-1">
