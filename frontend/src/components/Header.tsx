@@ -28,10 +28,18 @@ const NAV_LINKS = [
   { label: "Agents", href: "/agents" },
   { label: "MCP", href: "/mcp" },
   { label: "Business AI", href: "/business" },
-  { label: "Leaderboards", href: "/leaderboard", highlight: true },
+  { label: "Leaderboards", href: "/leaderboard" },
   { label: "Advertise", href: "/advertise" },
   { label: "Newsletter", href: "https://brief.graphone.co" },
 ];
+
+function isNavLinkActive(href: string, pathname: string | null | undefined) {
+  // External links (e.g. Newsletter) are never marked active.
+  if (href.startsWith("http")) return false;
+  if (!pathname) return false;
+  if (pathname === href) return true;
+  return pathname.startsWith(`${href}/`);
+}
 
 const DIRECTORY_LINKS = [
   { name: "AI Tools", href: "/tools", icon: Wrench, color: "#FFC53D" },
@@ -95,19 +103,23 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/20 bg-background/80 backdrop-blur-md py-0.5 sm:py-1 relative">
       {/* Center: Nav links, centered against the full page width on lg+ */}
       <nav className="hidden lg:flex items-center gap-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-auto">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            target={link.label === "Newsletter" ? "_blank" : undefined}
-            rel={link.label === "Newsletter" ? "noopener noreferrer" : undefined}
-            className={`text-[12px] font-bold ${
-              link.highlight ? "text-[#6E56CF]" : "text-foreground-muted"
-            } hover:text-white transition-colors text-center cursor-pointer relative z-50 whitespace-nowrap`}
-          >
-            {link.label}
-          </Link>
-        ))}
+        {NAV_LINKS.map((link) => {
+          const isActive = isNavLinkActive(link.href, pathname);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              target={link.label === "Newsletter" ? "_blank" : undefined}
+              rel={link.label === "Newsletter" ? "noopener noreferrer" : undefined}
+              aria-current={isActive ? "page" : undefined}
+              className={`text-[12px] font-bold ${
+                isActive ? "text-[#6E56CF]" : "text-foreground-muted"
+              } hover:text-white transition-colors text-center cursor-pointer relative z-50 whitespace-nowrap`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="mx-auto max-w-[1440px] px-3.5 sm:px-8 flex items-center justify-between relative gap-2 z-20">
@@ -196,28 +208,32 @@ export function Header() {
               {/* Main navigation section */}
               <div className="p-3.5 border-b border-[#232326]/60">
                 <div className="grid grid-cols-2 gap-2">
-                  {NAV_LINKS.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      target={
-                        link.label === "Newsletter" ? "_blank" : undefined
-                      }
-                      rel={
-                        link.label === "Newsletter"
-                          ? "noopener noreferrer"
-                          : undefined
-                      }
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-center rounded-xl p-3 text-xs font-bold transition-all ${
-                        link.highlight
-                          ? "bg-[#6E56CF]/15 border border-[#6E56CF]/40 text-[#A78BFA]"
-                          : "bg-[#111114] border border-[#232326] text-white hover:border-white/20"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                  {NAV_LINKS.map((link) => {
+                    const isActive = isNavLinkActive(link.href, pathname);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        target={
+                          link.label === "Newsletter" ? "_blank" : undefined
+                        }
+                        rel={
+                          link.label === "Newsletter"
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={`flex items-center justify-center rounded-xl p-3 text-xs font-bold transition-all ${
+                          isActive
+                            ? "bg-[#6E56CF]/15 border border-[#6E56CF]/40 text-[#A78BFA]"
+                            : "bg-[#111114] border border-[#232326] text-white hover:border-white/20"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
 
