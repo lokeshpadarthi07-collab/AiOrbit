@@ -6,10 +6,21 @@ function createMockPrisma() {
     aIModel: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       count: vi.fn(),
       groupBy: vi.fn(),
+      update: vi.fn(),
     },
     company: {
+      findMany: vi.fn(),
+    },
+    brandLogo: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      count: vi.fn(),
+    },
+    modelSubCategory: {
       findMany: vi.fn(),
     },
   };
@@ -26,6 +37,7 @@ const baseModel = {
   releaseDate: new Date('2024-01-01'),
   createdAt: new Date('2024-01-01'),
   provider: { id: 'p1', slug: 'openai', name: 'OpenAI', logoUrl: null },
+  logo: { id: 'l1', slug: 'openai', name: 'OpenAI', logoUrl: '/logos/openai.svg', svgContent: null, domain: 'openai.com' },
 };
 
 describe('ModelsService', () => {
@@ -165,6 +177,82 @@ describe('ModelsService', () => {
       const result = await service.getModelById('nonexistent');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('database logo extraction', () => {
+    it('extracts logo from model database relation', async () => {
+      prisma.aIModel.findFirst.mockResolvedValue({
+        id: 'm1',
+        name: 'GPT-4o',
+        creator: 'OpenAI',
+        provider: { id: 'p1', slug: 'openai', name: 'OpenAI', logoUrl: '/logos/openai.svg' },
+        logo: { id: 'l1', slug: 'openai', name: 'OpenAI', logoUrl: '/logos/openai.svg', svgContent: '<svg>test</svg>', domain: 'openai.com' },
+      });
+
+      const result = await service.extractModelLogo('m1');
+
+      expect(result.source).toBe('database_relation');
+      expect(result.logo.slug).toBe('openai');
+      expect(result.logo.logoUrl).toBe('/logos/openai.svg');
+    });
+
+    it('falls back to querying BrandLogo in database if model logo relation is null', async () => {
+      prisma.aIModel.findFirst.mockResolvedValue({
+        id: 'm2',
+        name: 'DeepSeek-V3',
+        creator: 'DeepSeek',
+        provider: null,
+        logo: null,
+      });
+
+      prisma.brandLogo.findFirst.mockResolvedValue({
+        id: 'l2',
+        slug: 'deepseek',
+        name: 'DeepSeek',
+        logoUrl: '/logos/deepseek.svg',
+        svgContent: '<svg>deepseek</svg>',
+        domain: 'deepseek.com',
+      });
+
+      const result = await service.extractModelLogo('m2');
+
+      expect(result.source).toBe('database_brand_lookup');
+      expect(result.logo.slug).toBe('deepseek');
+      expect(result.logo.logoUrl).toBe('/logos/deepseek.svg');
+    });
+
+    it('lists all stored logos from the BrandLogo table', async () => {
+      prisma.brandLogo.findMany.mockResolvedValue([
+        { id: 'l1', slug: 'openai', name: 'OpenAI', logoUrl: '/logos/openai.svg', svgContent: null, domain: 'openai.com' },
+        { id: 'l2', slug: 'anthropic', name: 'Anthropic', logoUrl: '/logos/anthropic.svg', svgContent: null, domain: 'anthropic.com' },
+      ]);
+      prisma.brandLogo.count.mockResolvedValue(2);
+
+      const result = await service.listLogos({ page: 1, limit: 10 });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.pagination.total).toBe(2);
+      expect(prisma.brandLogo.findMany).toHaveBeenCalled();
+    });
+
+    it('gets a logo by slug from the database', async () => {
+      prisma.brandLogo.findUnique.mockResolvedValue({
+        id: 'l1',
+        slug: 'openai',
+        name: 'OpenAI',
+        logoUrl: '/logos/openai.svg',
+        svgContent: null,
+        domain: 'openai.com',
+      });
+
+      const result = await service.getLogoBySlug('openai');
+
+      expect(result?.slug).toBe('openai');
+      expect(prisma.brandLogo.findUnique).toHaveBeenCalledWith({
+        where: { slug: 'openai' },
+        select: expect.any(Object),
+      });
     });
   });
 });

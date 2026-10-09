@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
-import type { ModelsListQuery } from './models.schema.js';
+import type { ModelsListQuery, LogosListQuery } from './models.schema.js';
 
 const RELATED_LIMIT = 6;
 
@@ -8,6 +8,15 @@ const providerSelect = {
   slug: true,
   name: true,
   logoUrl: true,
+} as const;
+
+const logoSelect = {
+  id: true,
+  slug: true,
+  name: true,
+  logoUrl: true,
+  svgContent: true,
+  domain: true,
 } as const;
 
 export class ModelsService {
@@ -90,6 +99,7 @@ export class ModelsService {
         take: limit,
         include: {
           provider: { select: providerSelect },
+          logo: { select: logoSelect },
           subCategories: {
             select: {
               subCategory: {
@@ -118,7 +128,7 @@ export class ModelsService {
 
     const itemsWithSubCategories = items.map(item => ({
       ...item,
-      subCategories: item.subCategories.map(sc => sc.subCategory),
+      subCategories: Array.isArray(item.subCategories) ? item.subCategories.map(sc => sc.subCategory) : [],
     }));
 
     return {
@@ -149,6 +159,7 @@ export class ModelsService {
       where: { id },
       include: {
         provider: { select: providerSelect },
+        logo: { select: logoSelect },
         tasks: {
           include: {
             task: { select: { id: true, slug: true, title: true } },
@@ -191,6 +202,7 @@ export class ModelsService {
             orderBy: { createdAt: 'desc' },
             include: {
               provider: { select: providerSelect },
+              logo: { select: logoSelect },
             },
           });
 
@@ -226,6 +238,7 @@ export class ModelsService {
       where: { id: { in: ids } },
       include: {
         provider: { select: { id: true, slug: true, name: true, logoUrl: true } },
+        logo: { select: logoSelect },
       },
     });
 
@@ -246,6 +259,133 @@ export class ModelsService {
     return this.prisma.modelSubCategory.findMany({
       orderBy: { name: 'asc' },
       select: { id: true, name: true, slug: true, description: true },
+    });
+  }
+
+  /**
+   * Extract logo from database for a specific model by ID or slug.
+   * If the model's logoId relation is not populated, attempts fallback lookup
+   * in the database BrandLogo table by matching model creator or provider.
+   */
+  async extractModelLogo(modelIdOrSlug: string) {
+    const model = await this.prisma.aIModel.findFirst({
+      where: {
+        OR: [{ id: modelIdOrSlug }, { slug: modelIdOrSlug }],
+      },
+      include: {
+        provider: { select: providerSelect },
+        logo: { select: logoSelect },
+      },
+    });
+
+    if (!model) {
+      throw new Error(`Model not found with ID or slug: ${modelIdOrSlug}`);
+    }
+
+    if (model.logo) {
+      return {
+        modelId: model.id,
+        modelName: model.name,
+        creator: model.creator,
+        source: 'database_relation',
+        logo: model.logo,
+      };
+    }
+
+    // Fallback extraction: lookup BrandLogo table in database by creator/name
+    const creatorLower = (model.creator || '').trim().toLowerCase();
+    const fallbackLogo = await this.prisma.brandLogo.findFirst({
+      where: {
+        OR: [
+          { slug: creatorLower },
+          { name: { equals: model.creator, mode: 'insensitive' } },
+          { slug: { contains: creatorLower, mode: 'insensitive' } },
+        ],
+      },
+      select: logoSelect,
+    });
+
+    if (fallbackLogo) {
+      return {
+        modelId: model.id,
+        modelName: model.name,
+        creator: model.creator,
+        source: 'database_brand_lookup',
+        logo: fallbackLogo,
+      };
+    }
+
+    return {
+      modelId: model.id,
+      modelName: model.name,
+      creator: model.creator,
+      source: 'provider_or_default',
+      logo: {
+        id: 'fallback',
+        slug: creatorLower.replace(/[^a-z0-9]+/g, '-'),
+        name: model.creator,
+        logoUrl: model.provider?.logoUrl || `/logos/${creatorLower.replace(/[^a-z0-9]+/g, '')}.svg`,
+        svgContent: null,
+        domain: null,
+      },
+    };
+  }
+
+  /**
+   * Extract/list all logos stored in the database BrandLogo table
+   */
+  async listLogos(query?: LogosListQuery) {
+    const page = query?.page ?? 1;
+    const limit = query?.limit ?? 100;
+    const and: Prisma.BrandLogoWhereInput[] = [];
+
+    if (query?.search && query.search.trim().length > 0) {
+      const term = query.search.trim();
+      and.push({
+        OR: [
+          { name: { contains: term, mode: 'insensitive' } },
+          { slug: { contains: term, mode: 'insensitive' } },
+          { description: { contains: term, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (query?.category) {
+      and.push({ category: query.category });
+    }
+
+    const where: Prisma.BrandLogoWhereInput = and.length > 0 ? { AND: and } : {};
+
+    const [items, total] = await Promise.all([
+      this.prisma.brandLogo.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: logoSelect,
+      }),
+      this.prisma.brandLogo.count({ where }),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+        hasMore: page * limit < total,
+      },
+    };
+  }
+
+  /**
+   * Extract a specific logo from the database BrandLogo table by slug
+   */
+  async getLogoBySlug(slug: string) {
+    return this.prisma.brandLogo.findUnique({
+      where: { slug },
+      select: logoSelect,
     });
   }
 }

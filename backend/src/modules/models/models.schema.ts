@@ -19,5 +19,13 @@ export const modelsCompareQuerySchema = z.object({
   ids: z.string().transform((val) => val.split(",").map((s) => s.trim()).filter(Boolean)),
 });
 
+export const logosListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(200).default(100),
+  search: z.string().trim().min(1).max(100).optional(),
+  category: z.string().trim().optional(),
+});
+
 export type ModelsListQuery = z.infer<typeof modelsListQuerySchema>;
 export type ModelsCompareQuery = z.infer<typeof modelsCompareQuerySchema>;
+export type LogosListQuery = z.infer<typeof logosListQuerySchema>;
