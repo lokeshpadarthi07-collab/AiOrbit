@@ -269,6 +269,23 @@ export function formatModelType(modelType?: string | null): string | null {
   return MODEL_TYPE_LABELS[modelType as ModelType] ?? modelType;
 }
 
+export type ModelLogo = {
+  id: string;
+  slug: string;
+  name: string;
+  logoUrl: string;
+  svgContent?: string | null;
+  domain?: string | null;
+};
+
+export type ModelLogoExtractionResult = {
+  modelId: string;
+  modelName: string;
+  creator: string;
+  source: 'database_relation' | 'database_brand_lookup' | 'provider_or_default';
+  logo: ModelLogo;
+};
+
 export type AIModel = {
   id: string;
   name: string;
@@ -280,6 +297,7 @@ export type AIModel = {
   releaseDate: string;
   slug?: string;
   provider?: AIModelProvider | null;
+  logo?: ModelLogo | null;
   modelType?: ModelType;
   primaryTask?: string;
   openSource?: boolean;

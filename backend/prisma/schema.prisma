@@ -398,6 +398,8 @@ model AIModel {
   tasks            TaskModel[]
   providerId String?
   provider   Company? @relation(fields: [providerId], references: [id])
+  logoId     String?
+  logo       BrandLogo? @relation(fields: [logoId], references: [id], onDelete: SetNull)
   websiteUrl    String?
   capabilities  String[]  @default([])
 
@@ -409,6 +411,25 @@ model AIModel {
   modelType     ModelType?
   subCategories ModelSubCategoryItem[]
   @@index([providerId])
+  @@index([logoId])
+}
+
+model BrandLogo {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  logoUrl     String
+  svgContent  String?   @db.Text
+  domain      String?
+  category    String?   @default("ai")
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  aiModels    AIModel[]
+
+  @@index([slug])
+  @@index([name])
 }
 
 model ModelSubCategory {

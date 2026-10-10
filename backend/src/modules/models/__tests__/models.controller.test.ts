@@ -5,6 +5,12 @@ import { ModelsController } from '../models.controller.js';
 const mockService = {
   listModels: vi.fn(),
   getModelById: vi.fn(),
+  compareModels: vi.fn(),
+  listModelSubCategories: vi.fn(),
+  getFilterOptions: vi.fn(),
+  extractModelLogo: vi.fn(),
+  listLogos: vi.fn(),
+  getLogoBySlug: vi.fn(),
 };
 
 vi.mock('../models.service.js', () => ({
@@ -115,6 +121,78 @@ describe('ModelsController', () => {
       expect(c.json).toHaveBeenCalledWith(
         expect.objectContaining({ error: 'DB fail' }),
         500,
+      );
+    });
+  });
+
+  describe('logo extraction endpoints', () => {
+    it('getModelLogo returns extracted logo for model', async () => {
+      const mockLogoData = {
+        modelId: 'm1',
+        modelName: 'GPT-4',
+        creator: 'OpenAI',
+        source: 'database_relation',
+        logo: { id: 'l1', slug: 'openai', name: 'OpenAI', logoUrl: '/logos/openai.svg' },
+      };
+      mockService.extractModelLogo.mockResolvedValue(mockLogoData);
+      const c = createContext({ param: { id: 'm1' } });
+
+      await controller.getModelLogo(c);
+
+      expect(c.json).toHaveBeenCalledWith(mockLogoData);
+    });
+
+    it('getModelLogo returns 404 if model not found', async () => {
+      mockService.extractModelLogo.mockRejectedValue(new Error('Model not found with ID or slug: m999'));
+      const c = createContext({ param: { id: 'm999' } });
+
+      await controller.getModelLogo(c);
+
+      expect(c.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: expect.stringContaining('not found') }),
+        404,
+      );
+    });
+
+    it('listLogos returns paginated logos', async () => {
+      mockService.listLogos.mockResolvedValue({
+        items: [{ slug: 'openai', name: 'OpenAI', logoUrl: '/logos/openai.svg' }],
+        pagination: { page: 1, limit: 100, total: 1, totalPages: 1, hasMore: false },
+      });
+      const c = createContext({ query: {} });
+
+      await controller.listLogos(c);
+
+      expect(c.json).toHaveBeenCalledWith(
+        expect.objectContaining({ items: expect.any(Array) }),
+      );
+    });
+
+    it('getLogoBySlug returns logo when found', async () => {
+      mockService.getLogoBySlug.mockResolvedValue({
+        id: 'l1',
+        slug: 'openai',
+        name: 'OpenAI',
+        logoUrl: '/logos/openai.svg',
+      });
+      const c = createContext({ param: { slug: 'openai' } });
+
+      await controller.getLogoBySlug(c);
+
+      expect(c.json).toHaveBeenCalledWith(
+        expect.objectContaining({ slug: 'openai' }),
+      );
+    });
+
+    it('getLogoBySlug returns 404 when logo not found', async () => {
+      mockService.getLogoBySlug.mockResolvedValue(null);
+      const c = createContext({ param: { slug: 'unknown' } });
+
+      await controller.getLogoBySlug(c);
+
+      expect(c.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Logo not found' }),
+        404,
       );
     });
   });

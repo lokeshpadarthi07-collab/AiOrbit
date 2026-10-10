@@ -1,16 +1,29 @@
 /**
- * Company & Repository Logo Resolution Utility
+ * Company & Model Logo Retrieval Utility
  * 
- * Provides crisp, authentic, secure vector logos for all AI companies and repositories.
- * Priority:
- * 1. Bundled local SVG assets (/logos/*.svg) matching known company/creator names or slugs
- * 2. Model-aware brand resolution (correcting misattributed inference hosts like Meta/Google to true creators)
- * 3. Custom logo URL provided in dataset (if valid HTTPS or local path)
- * 4. GitHub organization / user avatar CDN (https://github.com/<owner>.png?size=128)
- * 5. Google S2 Favicon service with 128px high-resolution fallback
- * 6. Clean, styled monogram fallback badge
+ * Provides crisp, authentic vector logos for all AI models, companies, and creators.
+ * In accordance with repository architecture, logo vector assets are NOT checked into
+ * the code repository as static SVG files. Instead, they are retrieved dynamically
+ * from the database BrandLogo records and endpoints:
+ * 
+ * 1. Database Model BrandLogo relation (model.logo.logoUrl or model.logo.slug)
+ * 2. Database Logo Retrieval endpoint (/api/v1/models/logos/:slug/svg or /api/v1/models/:id/logo/svg)
+ * 3. Upstream bundled vector logos (/logos/*.svg for core baseline providers)
+ * 4. Model-aware brand correction (resolves true creators from generic inference hosts)
+ * 5. Official HTTPS CDN / GitHub avatar CDN
+ * 6. High-resolution domain favicon service
  */
 
+/**
+ * Endpoint helper to retrieve logo directly from the database API.
+ */
+export function getDatabaseLogoUrl(slug: string): string {
+  return `/api/v1/models/logos/${encodeURIComponent(slug)}/svg`;
+}
+
+/**
+ * Upstream baseline local logos that exist in public/logos/
+ */
 export const LOCAL_LOGO_MAP: Record<string, string> = {
   // OpenAI
   "openai": "/logos/openai.svg",
@@ -23,12 +36,9 @@ export const LOCAL_LOGO_MAP: Record<string, string> = {
   "anthropic": "/logos/anthropic.svg",
   "claude": "/logos/anthropic.svg",
 
-  // Google & DeepMind
+  // Google
   "google": "/logos/google.svg",
   "gemini": "/logos/google.svg",
-  "google deepmind": "/logos/deepmind.svg",
-  "deepmind": "/logos/deepmind.svg",
-  "google-deepmind": "/logos/deepmind.svg",
 
   // Meta
   "meta": "/logos/meta.svg",
@@ -59,361 +69,211 @@ export const LOCAL_LOGO_MAP: Record<string, string> = {
   "hugging face": "/logos/huggingface.svg",
   "huggingface": "/logos/huggingface.svg",
 
-  // BigCode
-  "bigcode": "/logos/bigcode.svg",
-
   // Perplexity
   "perplexity": "/logos/perplexity.svg",
   "perplexity ai": "/logos/perplexity.svg",
+};
+
+/**
+ * Database Brand Slugs:
+ * Maps company / creator keywords to their database `BrandLogo` slug.
+ * These are stored in PostgreSQL and retrieved via `/api/v1/models/logos/:slug/svg`.
+ */
+export const DATABASE_BRAND_SLUGS: Record<string, string> = {
+  // DeepSeek
+  "deepseek": "deepseek",
+  "deepseek ai": "deepseek",
+  "deepseek-ai": "deepseek",
 
   // Cohere
-  "cohere": "/logos/cohere.svg",
-  "cohere-ai": "/logos/cohere.svg",
+  "cohere": "cohere",
+  "cohere-ai": "cohere",
 
-  // DeepSeek
-  "deepseek": "/logos/deepseek.svg",
-  "deepseek ai": "/logos/deepseek.svg",
-  "deepseek-ai": "/logos/deepseek.svg",
-
-  // Alibaba vs Qwen
-  "alibaba": "/logos/alibaba.svg",
-  "alibaba cloud": "/logos/alibaba.svg",
-  "alibabacloud": "/logos/alibaba.svg",
-  "qwen": "/logos/qwen.svg",
-  "alibaba qwen": "/logos/qwen.svg",
+  // Alibaba & Qwen
+  "alibaba": "alibaba",
+  "alibaba cloud": "alibaba",
+  "alibabacloud": "alibaba",
+  "qwen": "qwen",
+  "alibaba qwen": "qwen",
 
   // xAI
-  "xai": "/logos/xai.svg",
-  "x.ai": "/logos/xai.svg",
-  "x": "/logos/xai.svg",
-  "grok": "/logos/xai.svg",
-
-  // AI2 (Allen Institute for AI)
-  "ai2": "/logos/ai2.svg",
-  "allen ai": "/logos/ai2.svg",
-  "allen institute": "/logos/ai2.svg",
-  "allen institute for ai": "/logos/ai2.svg",
-
-  // AI21 Labs
-  "ai21": "/logos/ai21.svg",
-  "ai21 labs": "/logos/ai21.svg",
-  "ai21labs": "/logos/ai21.svg",
-  "jamba": "/logos/ai21.svg",
-
-  // Stability AI
-  "stability": "/logos/stability.svg",
-  "stability ai": "/logos/stability.svg",
-  "stability-ai": "/logos/stability.svg",
-  "stabilityai": "/logos/stability.svg",
-  "stable diffusion": "/logos/stability.svg",
-  "automatic1111": "/logos/stability.svg",
-
-  // Midjourney
-  "midjourney": "/logos/midjourney.svg",
-
-  // Black Forest Labs / FLUX
-  "black forest labs": "/logos/flux.svg",
-  "blackforestlabs": "/logos/flux.svg",
-  "flux": "/logos/flux.svg",
-
-  // Moonshot AI / Kimi
-  "moonshot": "/logos/moonshot.svg",
-  "moonshot ai": "/logos/moonshot.svg",
-  "kimi": "/logos/moonshot.svg",
-
-  // Zhipu AI / GLM
-  "zhipu": "/logos/zhipu.svg",
-  "zhipu ai": "/logos/zhipu.svg",
-  "glm": "/logos/zhipu.svg",
-  "chatglm": "/logos/zhipu.svg",
-
-  // MiniMax
-  "minimax": "/logos/minimax.svg",
-  "hailuo": "/logos/minimax.svg",
-
-  // Runway
-  "runway": "/logos/runway.svg",
-  "runwayml": "/logos/runway.svg",
-
-  // Suno
-  "suno": "/logos/suno.svg",
-  "suno ai": "/logos/suno.svg",
-  "suno-ai": "/logos/suno.svg",
-  "bark": "/logos/suno.svg",
-
-  // ElevenLabs
-  "elevenlabs": "/logos/elevenlabs.svg",
-  "eleven labs": "/logos/elevenlabs.svg",
-
-  // Databricks
-  "databricks": "/logos/databricks.svg",
-  "dbrx": "/logos/databricks.svg",
-
-  // Snowflake
-  "snowflake": "/logos/snowflake.svg",
-  "arctic": "/logos/snowflake.svg",
-
-  // Ollama
-  "ollama": "/logos/ollama.svg",
-
-  // LangChain
-  "langchain": "/logos/langchain.svg",
-  "langchain-ai": "/logos/langchain.svg",
-
-  // ComfyUI
-  "comfyui": "/logos/comfyui.svg",
-  "comfyanonymous": "/logos/comfyui.svg",
-
-  // Apple
-  "apple": "/logos/apple.svg",
-
-  // Amazon & AWS
-  "amazon": "/logos/amazon.svg",
-  "amazon web services": "/logos/amazon.svg",
-  "aws": "/logos/aws.svg",
-
-  // Baidu
-  "baidu": "/logos/baidu.svg",
-  "ernie": "/logos/baidu.svg",
-
-  // ByteDance
-  "bytedance": "/logos/bytedance.svg",
-  "doubao": "/logos/bytedance.svg",
-
-  // Tencent
-  "tencent": "/logos/tencent.svg",
-  "hunyuan": "/logos/tencent.svg",
-
-  // Replit
-  "replit": "/logos/replit.svg",
-
-  // Ideogram
-  "ideogram": "/logos/ideogram.svg",
-
-  // Groq
-  "groq": "/logos/groq.svg",
-
-  // Together AI
-  "together": "/logos/together.svg",
-  "together ai": "/logos/together.svg",
-  "together-ai": "/logos/together.svg",
-
-  // Fal.ai
-  "fal": "/logos/fal.svg",
-  "fal-ai": "/logos/fal.svg",
-
-  // Kling / Kuaishou
-  "kling": "/logos/kling.svg",
-  "kuaishou": "/logos/kling.svg",
-  "kuaishou technology": "/logos/kling.svg",
-
-  // StepFun
-  "stepfun": "/logos/stepfun.svg",
-
-  // Baichuan
-  "baichuan": "/logos/baichuan.svg",
-
-  // 01.AI
-  "01": "/logos/01ai.svg",
-  "01ai": "/logos/01ai.svg",
-  "01 ai": "/logos/01ai.svg",
-  "01-ai": "/logos/01ai.svg",
-  "01.ai": "/logos/01ai.svg",
-  "yi": "/logos/01ai.svg",
-
-  // Reka AI
-  "reka": "/logos/reka.svg",
-  "reka ai": "/logos/reka.svg",
-
-  // IBM
-  "ibm": "/logos/ibm.svg",
-  "ibm research": "/logos/ibm.svg",
-
-  // LMSYS
-  "lmsys": "/logos/lmsys.svg",
-  "lmsys org": "/logos/lmsys.svg",
-  "vicuna": "/logos/lmsys.svg",
-
-  // Nous Research
-  "nous research": "/logos/nous.svg",
-  "nous": "/logos/nous.svg",
-  "hermes": "/logos/nous.svg",
-
-  // Cognitive Computations
-  "cognitive computations": "/logos/cognitive.svg",
-  "cognitive": "/logos/cognitive.svg",
-  "dolphin": "/logos/cognitive.svg",
-
-  // TinyLlama
-  "tinyllama": "/logos/tinyllama.svg",
-
-  // Phind
-  "phind": "/logos/phind.svg",
-
-  // Liquid AI
-  "liquid ai": "/logos/liquid.svg",
-  "liquid": "/logos/liquid.svg",
-
-  // OpenBMB
-  "openbmb": "/logos/openbmb.svg",
-
-  // TII (Technology Innovation Institute)
-  "tii": "/logos/tii.svg",
-  "technology innovation institute": "/logos/tii.svg",
-
-  // BAAI
-  "baai": "/logos/baai.svg",
-
-  // Jina AI
-  "jina": "/logos/jina.svg",
-  "jina ai": "/logos/jina.svg",
-
-  // Nomic
-  "nomic": "/logos/nomic.svg",
-
-  // Arcee AI
-  "arcee": "/logos/arcee.svg",
-  "arcee ai": "/logos/arcee.svg",
-
-  // Argilla
-  "argilla": "/logos/argilla.svg",
-
-  // Bespoke Labs
-  "bespoke": "/logos/bespoke.svg",
-  "bespoke labs": "/logos/bespoke.svg",
-
-  // Deep Cogito
-  "deep cogito": "/logos/cogito.svg",
-  "cogito": "/logos/cogito.svg",
-
-  // Deep Reinforce
-  "deep reinforce": "/logos/deepreinforce.svg",
-  "deepreinforce": "/logos/deepreinforce.svg",
-
-  // Defog
-  "defog": "/logos/defog.svg",
-
-  // Essential AI
-  "essential": "/logos/essential.svg",
-  "essential ai": "/logos/essential.svg",
-
-  // HyperWrite
-  "hyperwrite": "/logos/hyperwrite.svg",
-
-  // Inception
-  "inception": "/logos/inception.svg",
-
-  // Inclusion AI
-  "inclusion": "/logos/inclusion.svg",
-  "inclusion ai": "/logos/inclusion.svg",
-
-  // InternLM
-  "internlm": "/logos/internlm.svg",
-  "shanghai ai lab": "/logos/internlm.svg",
-  "shanghai ai laboratory": "/logos/internlm.svg",
-
-  // Joshuant
-  "joshuant": "/logos/joshuant.svg",
-
-  // LG AI Research
-  "lg": "/logos/lg.svg",
-  "lg ai": "/logos/lg.svg",
-  "lg ai research": "/logos/lg.svg",
-  "exaone": "/logos/lg.svg",
-
-  // LightOn
-  "lighton": "/logos/lighton.svg",
-
-  // Meituan
-  "meituan": "/logos/meituan.svg",
-
-  // Mixedbread AI
-  "mixedbread": "/logos/mixedbread.svg",
-  "mixedbread ai": "/logos/mixedbread.svg",
-
-  // Moondream
-  "moondream": "/logos/moondream.svg",
-
-  // Morph
-  "morph": "/logos/morph.svg",
-
-  // MotherDuck
-  "motherduck": "/logos/motherduck.svg",
-  "motherduck numbers station": "/logos/motherduck.svg",
-  "motherduck & numbers station": "/logos/motherduck.svg",
-
-  // Nex AGI
-  "nex agi": "/logos/nexagi.svg",
-  "nexagi": "/logos/nexagi.svg",
-
-  // Nexusflow
-  "nexusflow": "/logos/nexusflow.svg",
-
-  // Open-Orca
-  "open-orca": "/logos/openorca.svg",
-  "open orca": "/logos/openorca.svg",
-
-  // OpenChat
-  "openchat": "/logos/openchat.svg",
-
-  // OpenCoder Team
-  "opencoder": "/logos/opencoder.svg",
-  "opencoder team": "/logos/opencoder.svg",
-
-  // Pankaj Mathur
-  "pankaj mathur": "/logos/pankajmathur.svg",
-  "pankajmathur": "/logos/pankajmathur.svg",
-
-  // Perceptron
-  "perceptron": "/logos/perceptron.svg",
-
-  // Poolside
-  "poolside": "/logos/poolside.svg",
-
-  // Sailor2 / Sea AI Lab
-  "sailor": "/logos/sailor.svg",
-  "sailor2": "/logos/sailor.svg",
-  "sea ai lab": "/logos/sailor.svg",
-  "sea group": "/logos/sailor.svg",
-
-  // Sentence Transformers
-  "sentence transformers": "/logos/sentencetransformers.svg",
-  "sentence-transformers": "/logos/sentencetransformers.svg",
-
-  // Thinking Machines
-  "thinking machines": "/logos/thinkingmachines.svg",
-
-  // Writer AI
-  "writer": "/logos/writer.svg",
-  "writer ai": "/logos/writer.svg",
-
-  // Xiaomi
-  "xiaomi": "/logos/xiaomi.svg",
-
-  // Z.ai
-  "zai": "/logos/zai.svg",
-  "z.ai": "/logos/zai.svg",
-  "z ai": "/logos/zai.svg",
-  "z": "/logos/zai.svg",
-
-  // oobabooga
-  "oobabooga": "/logos/oobabooga.svg",
-
-  // Frameworks & Tools
-  "vllm": "/logos/vllm.svg",
-  "vllm project": "/logos/vllm.svg",
-  "vllm-project": "/logos/vllm.svg",
-  "llamaindex": "/logos/llamaindex.svg",
-  "run llama": "/logos/llamaindex.svg",
-  "run-llama": "/logos/llamaindex.svg",
-  "cerebras": "/logos/cerebras.svg",
-  "luma": "/logos/luma.svg",
-  "luma ai": "/logos/luma.svg",
-  "pika": "/logos/pika.svg",
-  "pika labs": "/logos/pika.svg",
-  "upstage": "/logos/upstage.svg",
-  "pytorch": "/logos/pytorch.svg",
-  "tensorflow": "/logos/tensorflow.svg",
+  "xai": "xai",
+  "x.ai": "xai",
+  "grok": "xai",
+
+  // AI2 & AI21
+  "ai2": "ai2",
+  "allen ai": "ai2",
+  "allen institute": "ai2",
+  "allen institute for ai": "ai2",
+  "ai21": "ai21",
+  "ai21 labs": "ai21",
+  "ai21labs": "ai21",
+  "jamba": "ai21",
+
+  // Stability AI & FLUX
+  "stability": "stability",
+  "stability ai": "stability",
+  "stability-ai": "stability",
+  "stabilityai": "stability",
+  "stable diffusion": "stability",
+  "automatic1111": "stability",
+  "midjourney": "midjourney",
+  "flux": "flux",
+  "black forest labs": "flux",
+  "blackforestlabs": "flux",
+
+  // Moonshot & Zhipu
+  "moonshot": "moonshot",
+  "moonshot ai": "moonshot",
+  "kimi": "moonshot",
+  "zhipu": "zhipu",
+  "zhipu ai": "zhipu",
+  "glm": "zhipu",
+  "chatglm": "zhipu",
+
+  // Audio / Video / Creative
+  "minimax": "minimax",
+  "hailuo": "minimax",
+  "runway": "runway",
+  "runwayml": "runway",
+  "suno": "suno",
+  "suno ai": "suno",
+  "suno-ai": "suno",
+  "elevenlabs": "elevenlabs",
+  "eleven labs": "elevenlabs",
+
+  // Enterprise & Infrastructure
+  "databricks": "databricks",
+  "dbrx": "databricks",
+  "snowflake": "snowflake",
+  "arctic": "snowflake",
+  "ollama": "ollama",
+  "langchain": "langchain",
+  "langchain-ai": "langchain",
+  "comfyui": "comfyui",
+  "comfyanonymous": "comfyui",
+  "apple": "apple",
+  "amazon": "amazon",
+  "amazon web services": "amazon",
+  "aws": "aws",
+  "baidu": "baidu",
+  "ernie": "baidu",
+  "bytedance": "bytedance",
+  "doubao": "bytedance",
+  "tencent": "tencent",
+  "hunyuan": "tencent",
+  "replit": "replit",
+  "ideogram": "ideogram",
+  "groq": "groq",
+  "together": "together",
+  "together ai": "together",
+  "fal": "fal",
+  "kling": "kling",
+  "kuaishou": "kling",
+  "stepfun": "stepfun",
+  "baichuan": "baichuan",
+  "01": "01ai",
+  "01ai": "01ai",
+  "01 ai": "01ai",
+  "01-ai": "01ai",
+  "01.ai": "01ai",
+  "yi": "01ai",
+  "reka": "reka",
+  "reka ai": "reka",
+  "ibm": "ibm",
+  "ibm research": "ibm",
+  "lmsys": "lmsys",
+  "nous": "nous",
+  "nous research": "nous",
+  "hermes": "nous",
+  "cognitive": "cognitive",
+  "cognitive computations": "cognitive",
+  "dolphin": "cognitive",
+  "tinyllama": "tinyllama",
+  "phind": "phind",
+  "liquid": "liquid",
+  "liquid ai": "liquid",
+  "openbmb": "openbmb",
+  "tii": "tii",
+  "technology innovation institute": "tii",
+  "baai": "baai",
+  "jina": "jina",
+  "jina ai": "jina",
+  "nomic": "nomic",
+  "arcee": "arcee",
+  "arcee ai": "arcee",
+  "argilla": "argilla",
+  "bespoke": "bespoke",
+  "bespoke labs": "bespoke",
+  "deepmind": "deepmind",
+  "google deepmind": "deepmind",
+  "google-deepmind": "deepmind",
+  "cogito": "cogito",
+  "deep cogito": "cogito",
+  "deepreinforce": "deepreinforce",
+  "deep reinforce": "deepreinforce",
+  "defog": "defog",
+  "essential": "essential",
+  "essential ai": "essential",
+  "hyperwrite": "hyperwrite",
+  "inception": "inception",
+  "inclusion": "inclusion",
+  "inclusion ai": "inclusion",
+  "internlm": "internlm",
+  "shanghai ai lab": "internlm",
+  "joshuant": "joshuant",
+  "lg": "lg",
+  "lg ai": "lg",
+  "lg ai research": "lg",
+  "lighton": "lighton",
+  "meituan": "meituan",
+  "mixedbread": "mixedbread",
+  "mixedbread ai": "mixedbread",
+  "moondream": "moondream",
+  "morph": "morph",
+  "motherduck": "motherduck",
+  "motherduck numbers station": "motherduck",
+  "motherduck & numbers station": "motherduck",
+  "nexagi": "nexagi",
+  "nex agi": "nexagi",
+  "nexusflow": "nexusflow",
+  "openorca": "openorca",
+  "open-orca": "openorca",
+  "open orca": "openorca",
+  "openchat": "openchat",
+  "opencoder": "opencoder",
+  "opencoder team": "opencoder",
+  "pankajmathur": "pankajmathur",
+  "pankaj mathur": "pankajmathur",
+  "perceptron": "perceptron",
+  "poolside": "poolside",
+  "sailor": "sailor",
+  "sailor2": "sailor",
+  "sea ai lab": "sailor",
+  "sentencetransformers": "sentencetransformers",
+  "sentence transformers": "sentencetransformers",
+  "thinkingmachines": "thinkingmachines",
+  "thinking machines": "thinkingmachines",
+  "writer": "writer",
+  "writer ai": "writer",
+  "xiaomi": "xiaomi",
+  "zai": "zai",
+  "z.ai": "zai",
+  "z ai": "zai",
+  "oobabooga": "oobabooga",
+  "vllm": "vllm",
+  "vllm project": "vllm",
+  "llamaindex": "llamaindex",
+  "cerebras": "cerebras",
+  "luma": "luma",
+  "luma ai": "luma",
+  "pika": "pika",
+  "pika labs": "pika",
+  "upstage": "upstage",
+  "pytorch": "pytorch",
+  "tensorflow": "tensorflow",
+  "bigcode": "bigcode",
 };
 
 /**
@@ -432,10 +292,11 @@ function normalizeName(name: string): string {
 /**
  * Resolves a company/owner name to the best authentic logo URL.
  * 
- * @param companyOrOwner Name of the company, creator, or GitHub repository owner
- * @param existingLogoUrl Existing logoUrl or avatarUrl from backend / data
- * @param isRepoOwner Set to true when resolving for a GitHub repository owner
- * @returns Secure logo URL (local SVG, official HTTPS CDN) or null if unresolvable
+ * 1. Checks existing database URL
+ * 2. Checks upstream local SVG baseline
+ * 3. Checks database BrandLogo retrieval endpoint
+ * 4. Checks GitHub owner CDN
+ * 5. Fallback domain favicon
  */
 export function resolveCompanyLogo(
   companyOrOwner?: string | null,
@@ -450,43 +311,50 @@ export function resolveCompanyLogo(
   const cleanName = (companyOrOwner || "").trim();
   if (!cleanName && !existingLogoUrl) return null;
 
+  const rawLower = cleanName.toLowerCase();
   const normalized = normalizeName(cleanName);
   const compact = normalized.replace(/\s+/g, "");
   const rawCompact = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "");
 
-  // 1. Check exact match in local SVG map
-  if (LOCAL_LOGO_MAP[normalized]) {
-    return LOCAL_LOGO_MAP[normalized];
+  // 2. Check upstream bundled local SVG map
+  if (LOCAL_LOGO_MAP[rawLower]) return LOCAL_LOGO_MAP[rawLower];
+  if (LOCAL_LOGO_MAP[normalized]) return LOCAL_LOGO_MAP[normalized];
+  if (LOCAL_LOGO_MAP[compact]) return LOCAL_LOGO_MAP[compact];
+  if (LOCAL_LOGO_MAP[rawCompact]) return LOCAL_LOGO_MAP[rawCompact];
+
+  // 3. Check database BrandLogo table retrieval endpoint
+  if (DATABASE_BRAND_SLUGS[rawLower]) {
+    return getDatabaseLogoUrl(DATABASE_BRAND_SLUGS[rawLower]);
   }
-  if (LOCAL_LOGO_MAP[compact]) {
-    return LOCAL_LOGO_MAP[compact];
+  if (DATABASE_BRAND_SLUGS[normalized]) {
+    return getDatabaseLogoUrl(DATABASE_BRAND_SLUGS[normalized]);
   }
-  if (LOCAL_LOGO_MAP[rawCompact]) {
-    return LOCAL_LOGO_MAP[rawCompact];
+  if (DATABASE_BRAND_SLUGS[compact]) {
+    return getDatabaseLogoUrl(DATABASE_BRAND_SLUGS[compact]);
+  }
+  if (DATABASE_BRAND_SLUGS[rawCompact]) {
+    return getDatabaseLogoUrl(DATABASE_BRAND_SLUGS[rawCompact]);
   }
 
-  // 2. Strict whole-word and robust prefix matching (NEVER match substring of key to avoid collisions)
+  // 4. Strict word matching for upstream and database brands
   const words = normalized.split(/\s+/);
   for (const [key, logoPath] of Object.entries(LOCAL_LOGO_MAP)) {
     if (words.includes(key)) {
       return logoPath;
     }
-    if (key.length >= 4 && normalized.includes(key)) {
-      return logoPath;
+  }
+  for (const [key, slug] of Object.entries(DATABASE_BRAND_SLUGS)) {
+    if (words.includes(key)) {
+      return getDatabaseLogoUrl(slug);
     }
   }
 
-  // 3. If an existing URL is provided and valid, use it
-  if (existingLogoUrl && existingLogoUrl.trim() !== "" && (existingLogoUrl.startsWith("http://") || existingLogoUrl.startsWith("https://") || existingLogoUrl.startsWith("/"))) {
-    return existingLogoUrl.replace(/^http:\/\//i, "https://");
-  }
-
-  // 4. For GitHub repository owners, use GitHub's official avatar CDN
+  // 5. For GitHub repository owners, use GitHub's official avatar CDN
   if (isRepoOwner && cleanName && !cleanName.includes(" ") && !cleanName.includes(".")) {
     return `https://github.com/${encodeURIComponent(cleanName)}.png?size=128`;
   }
 
-  // 5. Fallback domain-based favicon for known domains or clean company names
+  // 6. Fallback domain-based favicon for known domains or clean company names
   if (cleanName && !cleanName.includes(" ")) {
     const domain = cleanName.includes(".") ? cleanName : `${cleanName}.com`;
     return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
@@ -498,14 +366,16 @@ export function resolveCompanyLogo(
 /**
  * Resolves the accurate company/creator and logo for a model.
  * 
- * Corrects database anomalies where models are tagged with generic base providers
- * (e.g. DeepSeek R1 attributed to Google, Stable Code attributed to Meta, WizardLM attributed to Meta)
- * so that each distinct AI model/company gets its authentic, unconflicted logo.
+ * Corrects anomalies where models are tagged with generic base providers
+ * (e.g. DeepSeek R1 attributed to Google, Stable Code attributed to Meta)
+ * so that each distinct AI model/company gets its authentic database-extracted logo.
  */
 export function resolveModelBrand(model: {
+  id?: string | null;
   name?: string | null;
   creator?: string | null;
   provider?: { name?: string | null; logoUrl?: string | null } | null;
+  logo?: { id?: string | null; slug?: string | null; name?: string | null; logoUrl?: string | null } | null;
   slug?: string | null;
   logoUrl?: string | null;
   company?: { name?: string | null; logoUrl?: string | null } | null;
@@ -514,146 +384,165 @@ export function resolveModelBrand(model: {
   const nameLower = name.toLowerCase();
   const creator = (model.creator || "").trim();
   const providerName = (model.provider?.name || "").trim();
+
+  // 1. Check direct extracted logo from database BrandLogo relation
+  if (model.logo?.logoUrl && model.logo.logoUrl.trim() !== "") {
+    return {
+      companyName: model.logo.name || providerName || creator || "—",
+      logoUrl: model.logo.logoUrl,
+    };
+  }
+  if (model.logo?.slug && model.logo.slug.trim() !== "") {
+    return {
+      companyName: model.logo.name || providerName || creator || "—",
+      logoUrl: getDatabaseLogoUrl(model.logo.slug),
+    };
+  }
+
   const dbLogo = model.provider?.logoUrl || (model as any).company?.logoUrl || (model as any).logoUrl || null;
 
-  // Retrieve logo directly from database if available
+  // Retrieve logo directly from database provider if available
   if (dbLogo && dbLogo.trim() !== "") {
-    const companyName = providerName || creator || "—";
-    return { companyName, logoUrl: dbLogo.replace(/^http:\/\//i, "https://") };
+    const isGenericFavicon = dbLogo.includes("google.com/s2/favicons");
+    const localLogo = resolveCompanyLogo(providerName || creator || "");
+    if (!isGenericFavicon || !localLogo) {
+      const companyName = providerName || creator || "—";
+      return { companyName, logoUrl: dbLogo.replace(/^http:\/\//i, "https://") };
+    }
   }
 
   // Model-name based creator attribution when DB has host/generic provider
   if (nameLower.includes("deepseek") || nameLower.startsWith("r1 ") || nameLower === "deepseek r1") {
-    return { companyName: "DeepSeek", logoUrl: "/logos/deepseek.svg" };
+    return { companyName: "DeepSeek", logoUrl: getDatabaseLogoUrl("deepseek") };
   }
   if (nameLower.startsWith("stable code") || nameLower.startsWith("stable beluga") || nameLower.startsWith("stablelm") || nameLower.startsWith("stable diffusion") || nameLower.startsWith("sdxl")) {
-    return { companyName: "Stability AI", logoUrl: "/logos/stability.svg" };
+    return { companyName: "Stability AI", logoUrl: getDatabaseLogoUrl("stability") };
   }
   if (nameLower.startsWith("wizardlm") || nameLower.startsWith("wizardcoder") || nameLower.startsWith("wizard math")) {
     return { companyName: "Microsoft", logoUrl: "/logos/microsoft.svg" };
   }
   if (nameLower === "vicuna" || nameLower.startsWith("wizard vicuna")) {
-    return { companyName: "LMSYS", logoUrl: "/logos/lmsys.svg" };
+    return { companyName: "LMSYS", logoUrl: getDatabaseLogoUrl("lmsys") };
   }
   if (nameLower.startsWith("tinyllama")) {
-    return { companyName: "TinyLlama", logoUrl: "/logos/tinyllama.svg" };
+    return { companyName: "TinyLlama", logoUrl: getDatabaseLogoUrl("tinyllama") };
   }
   if (nameLower.startsWith("tinydolphin") || nameLower.includes("dolphin") || nameLower.startsWith("samantha")) {
-    return { companyName: "Cognitive Computations", logoUrl: "/logos/cognitive.svg" };
+    return { companyName: "Cognitive Computations", logoUrl: getDatabaseLogoUrl("cognitive") };
   }
   if (nameLower.includes("phind")) {
-    return { companyName: "Phind", logoUrl: "/logos/phind.svg" };
+    return { companyName: "Phind", logoUrl: getDatabaseLogoUrl("phind") };
   }
   if (nameLower.startsWith("starcoder")) {
-    return { companyName: "BigCode", logoUrl: "/logos/bigcode.svg" };
+    return { companyName: "BigCode", logoUrl: getDatabaseLogoUrl("bigcode") };
   }
   if (nameLower.startsWith("tulu") || nameLower.startsWith("olmo")) {
-    return { companyName: "AI2", logoUrl: "/logos/ai2.svg" };
+    return { companyName: "AI2", logoUrl: getDatabaseLogoUrl("ai2") };
   }
   if (nameLower.startsWith("nous hermes") || nameLower.includes("hermes") || nameLower.startsWith("openhermes")) {
-    return { companyName: "Nous Research", logoUrl: "/logos/nous.svg" };
+    return { companyName: "Nous Research", logoUrl: getDatabaseLogoUrl("nous") };
   }
   if (nameLower.startsWith("granite")) {
-    return { companyName: "IBM", logoUrl: "/logos/ibm.svg" };
+    return { companyName: "IBM", logoUrl: getDatabaseLogoUrl("ibm") };
   }
   if (nameLower.startsWith("falcon")) {
-    return { companyName: "TII", logoUrl: "/logos/tii.svg" };
+    return { companyName: "TII", logoUrl: getDatabaseLogoUrl("tii") };
   }
   if (nameLower.startsWith("minicpm")) {
-    return { companyName: "OpenBMB", logoUrl: "/logos/openbmb.svg" };
+    return { companyName: "OpenBMB", logoUrl: getDatabaseLogoUrl("openbmb") };
   }
   if (nameLower.startsWith("lfm")) {
-    return { companyName: "Liquid AI", logoUrl: "/logos/liquid.svg" };
+    return { companyName: "Liquid AI", logoUrl: getDatabaseLogoUrl("liquid") };
   }
   if (nameLower.startsWith("bge")) {
-    return { companyName: "BAAI", logoUrl: "/logos/baai.svg" };
+    return { companyName: "BAAI", logoUrl: getDatabaseLogoUrl("baai") };
   }
   if (nameLower.startsWith("gemma") || nameLower.startsWith("shieldgemma") || nameLower.startsWith("codegemma") || nameLower.startsWith("translategemma") || nameLower.startsWith("medgemma")) {
     return { companyName: "Google", logoUrl: "/logos/google.svg" };
   }
   if (nameLower.startsWith("qwen") || nameLower.startsWith("qwq") || nameLower.startsWith("smallthinker")) {
-    return { companyName: "Alibaba", logoUrl: "/logos/qwen.svg" };
+    return { companyName: "Alibaba", logoUrl: getDatabaseLogoUrl("qwen") };
   }
   if (nameLower.startsWith("smollm")) {
     return { companyName: "Hugging Face", logoUrl: "/logos/huggingface.svg" };
   }
   if (nameLower.startsWith("solar")) {
-    return { companyName: "Upstage", logoUrl: "/logos/upstage.svg" };
+    return { companyName: "Upstage", logoUrl: getDatabaseLogoUrl("upstage") };
   }
   if (nameLower.startsWith("snowflake") || nameLower.startsWith("arctic")) {
-    return { companyName: "Snowflake", logoUrl: "/logos/snowflake.svg" };
+    return { companyName: "Snowflake", logoUrl: getDatabaseLogoUrl("snowflake") };
   }
   if (nameLower.includes("paraphrase") || nameLower.includes("minilm") || nameLower.includes("sentence-transformer")) {
-    return { companyName: "Sentence Transformers", logoUrl: "/logos/sentencetransformers.svg" };
+    return { companyName: "Sentence Transformers", logoUrl: getDatabaseLogoUrl("sentencetransformers") };
   }
   if (nameLower.includes("orca mini")) {
-    return { companyName: "Pankaj Mathur", logoUrl: "/logos/pankajmathur.svg" };
+    return { companyName: "Pankaj Mathur", logoUrl: getDatabaseLogoUrl("pankajmathur") };
   }
   if (nameLower.includes("mxbai")) {
-    return { companyName: "Mixedbread", logoUrl: "/logos/mixedbread.svg" };
+    return { companyName: "Mixedbread", logoUrl: getDatabaseLogoUrl("mixedbread") };
   }
   if (nameLower.includes("alfred")) {
-    return { companyName: "LightOn", logoUrl: "/logos/lighton.svg" };
+    return { companyName: "LightOn", logoUrl: getDatabaseLogoUrl("lighton") };
   }
   if (nameLower.includes("cogito")) {
-    return { companyName: "Deep Cogito", logoUrl: "/logos/cogito.svg" };
+    return { companyName: "Deep Cogito", logoUrl: getDatabaseLogoUrl("cogito") };
   }
   if (nameLower.includes("ornith")) {
-    return { companyName: "Deep Reinforce", logoUrl: "/logos/deepreinforce.svg" };
+    return { companyName: "Deep Reinforce", logoUrl: getDatabaseLogoUrl("deepreinforce") };
   }
   if (nameLower.includes("codebooga")) {
-    return { companyName: "oobabooga", logoUrl: "/logos/oobabooga.svg" };
+    return { companyName: "oobabooga", logoUrl: getDatabaseLogoUrl("oobabooga") };
   }
   if (nameLower.includes("notus") || nameLower.includes("notux")) {
-    return { companyName: "Argilla", logoUrl: "/logos/argilla.svg" };
+    return { companyName: "Argilla", logoUrl: getDatabaseLogoUrl("argilla") };
   }
   if (nameLower.includes("duckdb")) {
-    return { companyName: "MotherDuck", logoUrl: "/logos/motherduck.svg" };
+    return { companyName: "MotherDuck", logoUrl: getDatabaseLogoUrl("motherduck") };
   }
   if (nameLower.includes("virtuoso")) {
-    return { companyName: "Arcee AI", logoUrl: "/logos/arcee.svg" };
+    return { companyName: "Arcee AI", logoUrl: getDatabaseLogoUrl("arcee") };
   }
   if (nameLower.includes("laguna")) {
-    return { companyName: "Poolside", logoUrl: "/logos/poolside.svg" };
+    return { companyName: "Poolside", logoUrl: getDatabaseLogoUrl("poolside") };
   }
   if (nameLower.includes("reka")) {
-    return { companyName: "Reka AI", logoUrl: "/logos/reka.svg" };
+    return { companyName: "Reka AI", logoUrl: getDatabaseLogoUrl("reka") };
   }
   if (nameLower.includes("internlm")) {
-    return { companyName: "InternLM", logoUrl: "/logos/internlm.svg" };
+    return { companyName: "InternLM", logoUrl: getDatabaseLogoUrl("internlm") };
   }
   if (nameLower.includes("starling") || nameLower.includes("nexusraven") || nameLower.includes("athene")) {
-    return { companyName: "Nexusflow", logoUrl: "/logos/nexusflow.svg" };
+    return { companyName: "Nexusflow", logoUrl: getDatabaseLogoUrl("nexusflow") };
   }
   if (nameLower.includes("sqlcoder")) {
-    return { companyName: "Defog", logoUrl: "/logos/defog.svg" };
+    return { companyName: "Defog", logoUrl: getDatabaseLogoUrl("defog") };
   }
   if (nameLower.includes("sailor")) {
-    return { companyName: "Sailor2", logoUrl: "/logos/sailor.svg" };
+    return { companyName: "Sailor2", logoUrl: getDatabaseLogoUrl("sailor") };
   }
   if (nameLower.includes("rnj")) {
-    return { companyName: "Essential AI", logoUrl: "/logos/essential.svg" };
+    return { companyName: "Essential AI", logoUrl: getDatabaseLogoUrl("essential") };
   }
   if (nameLower.includes("reflection")) {
-    return { companyName: "HyperWrite", logoUrl: "/logos/hyperwrite.svg" };
+    return { companyName: "HyperWrite", logoUrl: getDatabaseLogoUrl("hyperwrite") };
   }
   if (nameLower.includes("reader lm") || nameLower.includes("readerlm")) {
-    return { companyName: "Jina AI", logoUrl: "/logos/jina.svg" };
+    return { companyName: "Jina AI", logoUrl: getDatabaseLogoUrl("jina") };
   }
   if (nameLower.includes("openchat")) {
-    return { companyName: "OpenChat", logoUrl: "/logos/openchat.svg" };
+    return { companyName: "OpenChat", logoUrl: getDatabaseLogoUrl("openchat") };
   }
   if (nameLower.includes("opencoder")) {
-    return { companyName: "OpenCoder Team", logoUrl: "/logos/opencoder.svg" };
+    return { companyName: "OpenCoder Team", logoUrl: getDatabaseLogoUrl("opencoder") };
   }
   if (nameLower.includes("platypus")) {
-    return { companyName: "Open-Orca", logoUrl: "/logos/openorca.svg" };
+    return { companyName: "Open-Orca", logoUrl: getDatabaseLogoUrl("openorca") };
   }
   if (nameLower.includes("bespoke")) {
-    return { companyName: "Bespoke Labs", logoUrl: "/logos/bespoke.svg" };
+    return { companyName: "Bespoke Labs", logoUrl: getDatabaseLogoUrl("bespoke") };
   }
   if (nameLower.includes("moondream")) {
-    return { companyName: "Moondream", logoUrl: "/logos/moondream.svg" };
+    return { companyName: "Moondream", logoUrl: getDatabaseLogoUrl("moondream") };
   }
 
   // Default attribution
