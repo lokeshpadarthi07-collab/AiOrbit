@@ -26,6 +26,16 @@ export class ModelsService {
     this.prisma = prisma;
   }
 
+  private isMissingLogoSchemaError(err: unknown): boolean {
+    const msg = err instanceof Error ? err.message : String(err);
+    return (
+      msg.includes('logoId') ||
+      msg.includes('BrandLogo') ||
+      msg.includes('brand_logos') ||
+      (msg.includes('column') && msg.includes('does not exist'))
+    );
+  }
+
   async listModels(query: ModelsListQuery) {
     const { page, limit, sort, search, provider, modality, creator, modelType, openSource, primaryTask, subCategory } = query;
 
@@ -91,24 +101,50 @@ export class ModelsService {
         orderBy = { createdAt: 'desc' };
     }
 
-    const [items, total, companies, modalityGroups] = await Promise.all([
-      this.prisma.aIModel.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          provider: { select: providerSelect },
-          logo: { select: logoSelect },
-          subCategories: {
-            select: {
-              subCategory: {
-                select: { id: true, name: true, slug: true },
+    const fetchItems = async () => {
+      try {
+        return await this.prisma.aIModel.findMany({
+          where,
+          orderBy,
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            provider: { select: providerSelect },
+            logo: { select: logoSelect },
+            subCategories: {
+              select: {
+                subCategory: {
+                  select: { id: true, name: true, slug: true },
+                },
               },
             },
           },
-        },
-      }),
+        });
+      } catch (err: unknown) {
+        if (this.isMissingLogoSchemaError(err)) {
+          return await this.prisma.aIModel.findMany({
+            where,
+            orderBy,
+            skip: (page - 1) * limit,
+            take: limit,
+            include: {
+              provider: { select: providerSelect },
+              subCategories: {
+                select: {
+                  subCategory: {
+                    select: { id: true, name: true, slug: true },
+                  },
+                },
+              },
+            },
+          });
+        }
+        throw err;
+      }
+    };
+
+    const [items, total, companies, modalityGroups] = await Promise.all([
+      fetchItems(),
       this.prisma.aIModel.count({ where }),
       this.prisma.company.findMany({
         where: { aiModels: { some: {} } },
@@ -126,9 +162,9 @@ export class ModelsService {
       }),
     ]);
 
-    const itemsWithSubCategories = items.map(item => ({
+    const itemsWithSubCategories = items.map((item: any) => ({
       ...item,
-      subCategories: Array.isArray(item.subCategories) ? item.subCategories.map(sc => sc.subCategory) : [],
+      subCategories: Array.isArray(item.subCategories) ? item.subCategories.map((sc: any) => sc.subCategory) : [],
     }));
 
     return {
@@ -155,18 +191,37 @@ export class ModelsService {
   }
 
   async getModelById(id: string) {
-    const model = await this.prisma.aIModel.findUnique({
-      where: { id },
-      include: {
-        provider: { select: providerSelect },
-        logo: { select: logoSelect },
-        tasks: {
-          include: {
-            task: { select: { id: true, slug: true, title: true } },
+    let model: any = null;
+    try {
+      model = await this.prisma.aIModel.findUnique({
+        where: { id },
+        include: {
+          provider: { select: providerSelect },
+          logo: { select: logoSelect },
+          tasks: {
+            include: {
+              task: { select: { id: true, slug: true, title: true } },
+            },
           },
         },
-      },
-    });
+      });
+    } catch (err: unknown) {
+      if (this.isMissingLogoSchemaError(err)) {
+        model = await this.prisma.aIModel.findUnique({
+          where: { id },
+          include: {
+            provider: { select: providerSelect },
+            tasks: {
+              include: {
+                task: { select: { id: true, slug: true, title: true } },
+              },
+            },
+          },
+        });
+      } else {
+        throw err;
+      }
+    }
 
     if (!model) return null;
 
@@ -190,10 +245,24 @@ export class ModelsService {
       });
     }
 
-    const relatedModels =
-      orClauses.length === 0
-        ? []
-        : await this.prisma.aIModel.findMany({
+    let relatedModels: any[] = [];
+    if (orClauses.length > 0) {
+      try {
+        relatedModels = await this.prisma.aIModel.findMany({
+          where: {
+            id: { not: id },
+            OR: orClauses,
+          },
+          take: RELATED_LIMIT,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            provider: { select: providerSelect },
+            logo: { select: logoSelect },
+          },
+        });
+      } catch (err: unknown) {
+        if (this.isMissingLogoSchemaError(err)) {
+          relatedModels = await this.prisma.aIModel.findMany({
             where: {
               id: { not: id },
               OR: orClauses,
@@ -202,9 +271,13 @@ export class ModelsService {
             orderBy: { createdAt: 'desc' },
             include: {
               provider: { select: providerSelect },
-              logo: { select: logoSelect },
             },
           });
+        } else {
+          throw err;
+        }
+      }
+    }
 
     return { ...model, relatedModels };
   }
@@ -234,15 +307,29 @@ export class ModelsService {
     if (ids.length === 0) return [];
     if (ids.length > 5) throw new Error("Cannot compare more than 5 models at once");
 
-    const models = await this.prisma.aIModel.findMany({
-      where: { id: { in: ids } },
-      include: {
-        provider: { select: { id: true, slug: true, name: true, logoUrl: true } },
-        logo: { select: logoSelect },
-      },
-    });
+    let models: any[];
+    try {
+      models = await this.prisma.aIModel.findMany({
+        where: { id: { in: ids } },
+        include: {
+          provider: { select: { id: true, slug: true, name: true, logoUrl: true } },
+          logo: { select: logoSelect },
+        },
+      });
+    } catch (err: unknown) {
+      if (this.isMissingLogoSchemaError(err)) {
+        models = await this.prisma.aIModel.findMany({
+          where: { id: { in: ids } },
+          include: {
+            provider: { select: { id: true, slug: true, name: true, logoUrl: true } },
+          },
+        });
+      } else {
+        throw err;
+      }
+    }
 
-    const foundIds = new Set(models.map((m) => m.id));
+    const foundIds = new Set(models.map((m: any) => m.id));
     const missingIds = ids.filter((id) => !foundIds.has(id));
 
     if (missingIds.length > 0) {
@@ -251,7 +338,7 @@ export class ModelsService {
 
     // findMany doesn't guarantee `id: { in }` order — re-sort to match the
     // caller's requested id sequence so compare columns stay stable.
-    const byId = new Map(models.map((m) => [m.id, m]));
+    const byId = new Map(models.map((m: any) => [m.id, m]));
     return ids.map((id) => byId.get(id)!);
   }
 
@@ -268,15 +355,31 @@ export class ModelsService {
    * in the database BrandLogo table by matching model creator or provider.
    */
   async extractModelLogo(modelIdOrSlug: string) {
-    const model = await this.prisma.aIModel.findFirst({
-      where: {
-        OR: [{ id: modelIdOrSlug }, { slug: modelIdOrSlug }],
-      },
-      include: {
-        provider: { select: providerSelect },
-        logo: { select: logoSelect },
-      },
-    });
+    let model: any;
+    try {
+      model = await this.prisma.aIModel.findFirst({
+        where: {
+          OR: [{ id: modelIdOrSlug }, { slug: modelIdOrSlug }],
+        },
+        include: {
+          provider: { select: providerSelect },
+          logo: { select: logoSelect },
+        },
+      });
+    } catch (err: unknown) {
+      if (this.isMissingLogoSchemaError(err)) {
+        model = await this.prisma.aIModel.findFirst({
+          where: {
+            OR: [{ id: modelIdOrSlug }, { slug: modelIdOrSlug }],
+          },
+          include: {
+            provider: { select: providerSelect },
+          },
+        });
+      } else {
+        throw err;
+      }
+    }
 
     if (!model) {
       throw new Error(`Model not found with ID or slug: ${modelIdOrSlug}`);
@@ -294,25 +397,29 @@ export class ModelsService {
 
     // Fallback extraction: lookup BrandLogo table in database by creator/name
     const creatorLower = (model.creator || '').trim().toLowerCase();
-    const fallbackLogo = await this.prisma.brandLogo.findFirst({
-      where: {
-        OR: [
-          { slug: creatorLower },
-          { name: { equals: model.creator, mode: 'insensitive' } },
-          { slug: { contains: creatorLower, mode: 'insensitive' } },
-        ],
-      },
-      select: logoSelect,
-    });
+    try {
+      const fallbackLogo = await this.prisma.brandLogo.findFirst({
+        where: {
+          OR: [
+            { slug: creatorLower },
+            { name: { equals: model.creator, mode: 'insensitive' } },
+            { slug: { contains: creatorLower, mode: 'insensitive' } },
+          ],
+        },
+        select: logoSelect,
+      });
 
-    if (fallbackLogo) {
-      return {
-        modelId: model.id,
-        modelName: model.name,
-        creator: model.creator,
-        source: 'database_brand_lookup',
-        logo: fallbackLogo,
-      };
+      if (fallbackLogo) {
+        return {
+          modelId: model.id,
+          modelName: model.name,
+          creator: model.creator,
+          source: 'database_brand_lookup',
+          logo: fallbackLogo,
+        };
+      }
+    } catch {
+      // BrandLogo table may not exist yet in unmigrated database
     }
 
     return {
@@ -356,36 +463,53 @@ export class ModelsService {
 
     const where: Prisma.BrandLogoWhereInput = and.length > 0 ? { AND: and } : {};
 
-    const [items, total] = await Promise.all([
-      this.prisma.brandLogo.findMany({
-        where,
-        orderBy: { name: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        select: logoSelect,
-      }),
-      this.prisma.brandLogo.count({ where }),
-    ]);
+    try {
+      const [items, total] = await Promise.all([
+        this.prisma.brandLogo.findMany({
+          where,
+          orderBy: { name: 'asc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          select: logoSelect,
+        }),
+        this.prisma.brandLogo.count({ where }),
+      ]);
 
-    return {
-      items,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / limit)),
-        hasMore: page * limit < total,
-      },
-    };
+      return {
+        items,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / limit)),
+          hasMore: page * limit < total,
+        },
+      };
+    } catch {
+      return {
+        items: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 1,
+          hasMore: false,
+        },
+      };
+    }
   }
 
   /**
    * Extract a specific logo from the database BrandLogo table by slug
    */
   async getLogoBySlug(slug: string) {
-    return this.prisma.brandLogo.findUnique({
-      where: { slug },
-      select: logoSelect,
-    });
+    try {
+      return await this.prisma.brandLogo.findUnique({
+        where: { slug },
+        select: logoSelect,
+      });
+    } catch {
+      return null;
+    }
   }
 }

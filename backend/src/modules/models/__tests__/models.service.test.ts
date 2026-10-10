@@ -254,5 +254,27 @@ describe('ModelsService', () => {
         select: expect.any(Object),
       });
     });
+
+    it('gracefully falls back when database table BrandLogo or column logoId does not exist', async () => {
+      // Mock findMany throwing "column AIModel.logoId does not exist" on first call, succeeding on fallback
+      prisma.aIModel.findMany
+        .mockRejectedValueOnce(new Error('Invalid prisma.aIModel.findMany() invocation: column AIModel.logoId does not exist'))
+        .mockResolvedValueOnce([baseModel]);
+      prisma.aIModel.count.mockResolvedValue(1);
+      prisma.company.findMany.mockResolvedValue([]);
+      prisma.aIModel.groupBy.mockResolvedValue([]);
+
+      const result = await service.listModels({ page: 1, limit: 10, sort: 'newest' });
+      expect(result.items).toHaveLength(1);
+      expect(prisma.aIModel.findMany).toHaveBeenCalledTimes(2);
+    });
+
+    it('gracefully handles missing BrandLogo table in listLogos', async () => {
+      prisma.brandLogo.findMany.mockRejectedValue(new Error('Table brand_logos does not exist'));
+
+      const result = await service.listLogos({ page: 1, limit: 10 });
+      expect(result.items).toEqual([]);
+      expect(result.pagination.total).toBe(0);
+    });
   });
 });

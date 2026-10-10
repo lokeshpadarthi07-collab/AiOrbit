@@ -1,4 +1,4 @@
-﻿import type { NextConfig } from "next";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -32,6 +32,10 @@ const nextConfig: NextConfig = {
       {
         source: "/api-proxy/:path*",
         destination: "https://ai-orbit.palamrendra-pm.workers.dev/:path*",
+      },
+      {
+        source: "/api/v1/models/logos/:path*",
+        destination: "https://ai-orbit.palamrendra-pm.workers.dev/api/v1/models/logos/:path*",
       },
       {
         source: "/models/compare",
