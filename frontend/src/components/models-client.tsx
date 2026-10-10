@@ -7,6 +7,7 @@ import Pencil from 'lucide-react/dist/esm/icons/pencil';
 import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
 import { AIModel, ModelSubCategory } from "@/lib/types";
 import { API_URL, fetchModels, fetchModelSubCategories, fetchModelFilters } from "@/lib/api";
+import { FALLBACK_MODELS } from "@/data/models";
 import { ModelListView } from "@/components/ModelListView";
 import { useUser } from "@/hooks/use-user";
 import { Modal } from "@/components/ui/modal";
@@ -244,8 +245,44 @@ export function ModelsClient({ defaultSubCategory }: { defaultSubCategory?: stri
     staleTime: 10 * 60 * 1000,
   });
 
-  const models = data?.items || [];
-  const totalPages = data?.pagination?.totalPages || 1;
+  // Fallback models when backend API returns empty or fails (e.g. preview deployment or unmigrated DB)
+  const filteredFallbackModels = React.useMemo(() => {
+    let result = [...FALLBACK_MODELS];
+    if (selectedSubCategorySlug && selectedSubCategorySlug !== "all") {
+      result = result.filter((m) =>
+        m.subCategories?.some((sc) => sc.slug === selectedSubCategorySlug)
+      );
+    }
+    if (q) {
+      const term = q.toLowerCase();
+      result = result.filter(
+        (m) =>
+          m.name.toLowerCase().includes(term) ||
+          m.creator.toLowerCase().includes(term) ||
+          m.description.toLowerCase().includes(term)
+      );
+    }
+    if (selectedProvider) {
+      result = result.filter((m) => m.provider?.slug === selectedProvider);
+    }
+    if (selectedModelType) {
+      result = result.filter((m) => m.modelType === selectedModelType);
+    }
+    if (selectedOpenSource) {
+      const isOpen = selectedOpenSource === "true";
+      result = result.filter((m) => Boolean(m.openSource) === isOpen);
+    }
+    return result;
+  }, [selectedSubCategorySlug, q, selectedProvider, selectedModelType, selectedOpenSource]);
+
+  const models = (data?.items && data.items.length > 0)
+    ? data.items
+    : filteredFallbackModels.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const totalPages = (data?.items && data.items.length > 0)
+    ? (data?.pagination?.totalPages || 1)
+    : Math.max(1, Math.ceil(filteredFallbackModels.length / pageSize));
+
   const hasActiveFilters = Boolean(q || selectedProvider || selectedModelType || selectedOpenSource);
 
   const reloadFirstPage = async () => {
@@ -429,7 +466,7 @@ export function ModelsClient({ defaultSubCategory }: { defaultSubCategory?: stri
             page={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}
-            totalCount={data?.pagination?.total}
+            totalCount={(data?.items && data.items.length > 0) ? data?.pagination?.total : filteredFallbackModels.length}
             onPageChange={(p) => {
               setCurrentPage(p);
               const target = document.getElementById("models-grid");
