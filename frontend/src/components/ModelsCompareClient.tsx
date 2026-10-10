@@ -105,17 +105,17 @@ export function ModelsCompareClient() {
           </div>
         ) : (
           <div className="overflow-x-auto scrollbar-none rounded-xl border border-[#232326]/60 bg-[#131316]/10">
-            <table className="w-full min-w-[640px] text-left">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#232326]/60 bg-[#131316]/40">
-                  <th className="px-4 py-3 text-[9.5px] font-mono font-semibold tracking-wider text-[#71717A] w-40">
+                <tr className="border-b border-[#232326]/60 bg-[#0e0e11]">
+                  <th className="sticky left-0 z-10 w-28 bg-[#0e0e11] px-4 py-3 text-[9.5px] font-mono font-semibold tracking-wider text-[#71717A]">
                     SPEC
                   </th>
                   {models.map((m) => {
                     if (!m) return null;
                     const { companyName: compName, logoUrl: companyLogo } = resolveModelBrand(m);
                     return (
-                      <th key={m.id} className="px-4 py-3 min-w-[200px]">
+                      <th key={m.id} className="min-w-[200px] px-4 py-3">
                         <Link href={`/models/${m.id}`} className="group block">
                           <div className="flex items-center gap-2">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white text-xs font-bold text-neutral-900">
@@ -144,10 +144,10 @@ export function ModelsCompareClient() {
               </thead>
               <tbody className="divide-y divide-[#232326]/60">
                 <tr>
-                  <td className="px-4 py-3 text-[11px] font-mono text-[#71717A]">Description</td>
+                  <td className="sticky left-0 z-10 w-28 bg-[#0e0e11] px-4 py-3 text-[11px] font-mono text-[#71717A]">Description</td>
                   {models.map((m) =>
                     m ? (
-                      <td key={m.id} className="px-4 py-3 text-[12px] text-[#A1A1AA] leading-snug">
+                      <td key={m.id} className="min-w-[200px] px-4 py-3 text-[12px] text-[#A1A1AA] leading-snug">
                         {m.description}
                       </td>
                     ) : null
@@ -155,10 +155,10 @@ export function ModelsCompareClient() {
                 </tr>
                 {ROWS.map((row) => (
                   <tr key={row.key}>
-                    <td className="px-4 py-3 text-[11px] font-mono text-[#71717A]">{row.label}</td>
+                    <td className="sticky left-0 z-10 w-28 bg-[#0e0e11] px-4 py-3 text-[11px] font-mono text-[#71717A]">{row.label}</td>
                     {models.map((m) =>
                       m ? (
-                        <td key={m.id} className="px-4 py-3 text-[13px] font-semibold text-white">
+                        <td key={m.id} className="min-w-[200px] px-4 py-3 text-[13px] font-semibold text-white">
                           {row.get(m)}
                         </td>
                       ) : null

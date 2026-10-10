@@ -198,53 +198,55 @@ export function CompareClient() {
           <div className="overflow-x-auto scrollbar-none rounded-xl border border-[#232326]/60 bg-[#131316]/10">
             <div className="min-w-[480px]">
               {/* Header row: the two tools */}
-              <div className="grid grid-cols-[140px_1fr_1fr] border-b border-[#232326]/60">
-              <div />
-              {tools.map((t, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center gap-2 border-l border-[#232326]/60 px-4 py-6"
-                >
-                  {t ? (
-                    <>
-                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
-                        {t.logoUrl ? (
-                          <Image src={t.logoUrl} alt={t.name} width={40} height={40} className="h-9 w-9 object-contain" />
-                        ) : (
-                          <span className="text-base font-bold text-neutral-900">{t.name.charAt(0)}</span>
-                        )}
-                      </div>
-                      <Link href={`/tools/${t.slug}`} className="text-[14px] font-bold text-white hover:underline">
-                        {t.name}
-                      </Link>
-                      <p className="line-clamp-2 text-center text-[11.5px] text-[#A1A1AA]">{t.description}</p>
-                    </>
-                  ) : (
-                    <span className="text-[13px] text-[#71717A]">Not found</span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Attribute rows */}
-            {rows.map((row) => (
-              <div
-                key={row.label}
-                className="grid grid-cols-[140px_1fr_1fr] border-b border-[#232326]/60 last:border-b-0"
-              >
-                <div className="flex items-center px-4 py-4 text-[11px] font-mono font-semibold uppercase tracking-wide text-[#71717A]">
-                  {row.label}
-                </div>
+              <div className="flex border-b border-[#232326]/60">
+                {/* Sticky empty corner cell */}
+                <div className="sticky left-0 z-10 w-[120px] shrink-0 bg-[#0e0e11]" />
                 {tools.map((t, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-center border-l border-[#232326]/60 px-4 py-4"
+                    className="flex min-w-[160px] flex-1 flex-col items-center gap-2 border-l border-[#232326]/60 px-4 py-6"
                   >
-                    {t ? row.render(t) : <span className="text-[#71717A]">&mdash;</span>}
+                    {t ? (
+                      <>
+                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+                          {t.logoUrl ? (
+                            <Image src={t.logoUrl} alt={t.name} width={40} height={40} className="h-9 w-9 object-contain" />
+                          ) : (
+                            <span className="text-base font-bold text-neutral-900">{t.name.charAt(0)}</span>
+                          )}
+                        </div>
+                        <Link href={`/tools/${t.slug}`} className="text-[14px] font-bold text-white hover:underline">
+                          {t.name}
+                        </Link>
+                        <p className="line-clamp-2 text-center text-[11.5px] text-[#A1A1AA]">{t.description}</p>
+                      </>
+                    ) : (
+                      <span className="text-[13px] text-[#71717A]">Not found</span>
+                    )}
                   </div>
                 ))}
               </div>
-            ))}
+
+              {/* Attribute rows */}
+              {rows.map((row) => (
+                <div
+                  key={row.label}
+                  className="flex border-b border-[#232326]/60 last:border-b-0"
+                >
+                  {/* Sticky label cell */}
+                  <div className="sticky left-0 z-10 flex w-[120px] shrink-0 items-center bg-[#0e0e11] px-4 py-4 text-[11px] font-mono font-semibold uppercase tracking-wide text-[#71717A]">
+                    {row.label}
+                  </div>
+                  {tools.map((t, i) => (
+                    <div
+                      key={i}
+                      className="flex min-w-[160px] flex-1 items-center justify-center border-l border-[#232326]/60 px-4 py-4"
+                    >
+                      {t ? row.render(t) : <span className="text-[#71717A]">&mdash;</span>}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         )}
