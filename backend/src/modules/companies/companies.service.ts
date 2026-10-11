@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma, CompanyType } from '@prisma/client';
+import { normalizeSector } from '../../lib/sector-utils.js';
 
 export class CompaniesService {
   private prisma: PrismaClient;
@@ -189,6 +190,7 @@ export class CompaniesService {
       }
       return {
         ...c,
+        sector: normalizeSector(c.sector),
         logoUrl,
         valuation: c.valuation !== null ? c.valuation.toString() : null,
         fundingRaised:
@@ -359,6 +361,7 @@ export class CompaniesService {
 
     return {
       ...company,
+      sector: normalizeSector(company.sector),
       logoUrl,
       robots,
       devices,

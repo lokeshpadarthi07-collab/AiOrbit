@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/shadcn-button";
 import { Pagination } from "@/components/Pagination";
 import { cn } from "@/lib/utils";
 import { useQuery, keepPreviousData, useQueryClient } from "@tanstack/react-query";
+import { normalizeSector } from "@/lib/sector-utils";
 
 const PAGE_SIZE = 100;
 
@@ -322,6 +323,8 @@ function matchesSubcategory(c: Company, slug: string): boolean {
     if (t && t.toLowerCase().replace(/[-_]/g, " ").includes(slugLower)) return true;
   }
 
+  const cleanSector = normalizeSector(c.sector);
+  if (cleanSector && cleanSector.toLowerCase().replace(/[-_]/g, " ").includes(slugLower)) return true;
   if (c.sector && c.sector.toLowerCase().replace(/[-_]/g, " ").includes(slugLower)) return true;
   if (c.description && c.description.toLowerCase().includes(slugLower)) return true;
 
@@ -367,7 +370,8 @@ function CompanyRow({
   const hasModels = authenticModels.length > 0 || (company._count?.aiModels || 0) > 0;
   const hasTools = (company.tools && company.tools.length > 0) || (company._count?.tools || 0) > 0;
   const derivedAiNative = hasAiNative !== null ? hasAiNative : (hasModels || hasTools ? true : null);
-  const derivedSector = company.sector || (hasModels ? "Foundation Models" : (hasTools ? "Generative AI" : null));
+  const rawSector = normalizeSector(company.sector);
+  const derivedSector = rawSector || (hasModels ? "Foundation Models" : (hasTools ? "Generative AI" : null));
   const targetUrl = `/companies/${safeSlug}`;
 
   const handleRowClick = () => {
@@ -663,7 +667,7 @@ export function CompaniesClient({ defaultCategory }: { defaultCategory?: string 
       // Filter by the actual Sector field from the DB.
       if (matchedSector) {
         candidates = candidates.filter((company) => {
-          return (company.sector || "").trim() === matchedSector;
+          return normalizeSector(company.sector) === matchedSector;
         });
       }
 
@@ -799,7 +803,7 @@ export function CompaniesClient({ defaultCategory }: { defaultCategory?: string 
             const country = company.country?.trim();
             if (country) countries.add(country);
 
-            const sector = company.sector?.trim();
+            const sector = normalizeSector(company.sector);
             if (sector) sectors.add(sector);
           });
         };

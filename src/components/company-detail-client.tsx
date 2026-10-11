@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/shadcn-button";
 import { useQuery } from "@tanstack/react-query";
+import { normalizeSector } from "@/lib/sector-utils";
 
 function formatCompanyName(name: string): string {
   if (!name) return "";
@@ -248,7 +249,8 @@ export function CompanyDetailClient() {
   const companyVideos = ((company as any).videos || []) as any[];
   const videosCount = companyVideos.length || (company as any)._count?.videos || 0;
   const firstTool = company.tools && company.tools.length > 0 ? company.tools[0] : null;
-  const sectorName = company.sector || (firstTool as any)?.category || (firstTool as any)?.tags?.[0] || "Artificial Intelligence";
+  const normalizedSector = normalizeSector(company.sector);
+  const sectorName = normalizedSector || (firstTool as any)?.category || (firstTool as any)?.tags?.[0] || "Artificial Intelligence";
   const companyDesc = company.description || (firstTool as any)?.description || `${cleanName} is an artificial intelligence entity building software solutions.`;
   const typesList = (company.type || []) as string[];
   const isAiNative = typesList.length > 0 ? typesList.includes('AI_NATIVE') : null;
@@ -399,14 +401,14 @@ export function CompanyDetailClient() {
           <Link href="/companies" className="hover:text-white transition-colors">
             Companies
           </Link>
-          {company.sector && (
+          {normalizedSector && (
             <>
               <ChevronRight size={12} className="text-[#52525B]" />
               <Link
-                href={`/companies?filter=${encodeURIComponent(company.sector.toLowerCase())}`}
+                href={`/companies?filter=${encodeURIComponent(normalizedSector.toLowerCase())}`}
                 className="hover:text-white transition-colors"
               >
-                {company.sector}
+                {normalizedSector}
               </Link>
             </>
           )}
