@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/shadcn-button";
 import { useQuery } from "@tanstack/react-query";
+import { normalizeSector } from "@/lib/sector-utils";
 
 function formatCompanyName(name: string): string {
   if (!name) return "";
@@ -248,7 +249,8 @@ export function CompanyDetailClient() {
   const companyVideos = ((company as any).videos || []) as any[];
   const videosCount = companyVideos.length || (company as any)._count?.videos || 0;
   const firstTool = company.tools && company.tools.length > 0 ? company.tools[0] : null;
-  const sectorName = company.sector || (firstTool as any)?.category || (firstTool as any)?.tags?.[0] || "Artificial Intelligence";
+  const normalizedSector = normalizeSector(company.sector);
+  const sectorName = normalizedSector || (firstTool as any)?.category || (firstTool as any)?.tags?.[0] || "Artificial Intelligence";
   const companyDesc = company.description || (firstTool as any)?.description || `${cleanName} is an artificial intelligence entity building software solutions.`;
   const typesList = (company.type || []) as string[];
   const isAiNative = typesList.length > 0 ? typesList.includes('AI_NATIVE') : null;
@@ -273,11 +275,11 @@ export function CompanyDetailClient() {
     <>
       <div className="p-4 sm:p-6">
         <div className="flex flex-col items-center text-center mb-4 sm:mb-6">
-          <div className="h-28 w-28 sm:h-48 sm:w-48 lg:h-44 lg:w-44 rounded-[24px] sm:rounded-[30px] bg-[#141418] border border-[#26262B] flex items-center justify-center overflow-hidden p-2 shadow-lg mb-4 sm:mb-6">
+          <div className="h-36 w-36 sm:h-52 sm:w-52 lg:h-48 lg:w-48 rounded-[26px] sm:rounded-[32px] bg-[#141418] border border-[#26262B] flex items-center justify-center overflow-hidden p-2.5 sm:p-3 shadow-lg mb-4 sm:mb-6">
             {logoSrc ? (
-              <img src={logoSrc} alt={cleanName} className="object-contain w-full h-full rounded-[18px] sm:rounded-[24px]" />
+              <img src={logoSrc} alt={cleanName} className="object-contain w-full h-full rounded-[20px] sm:rounded-[26px]" />
             ) : (
-              <span className="text-4xl sm:text-5xl font-black text-white">{cleanName.charAt(0)}</span>
+              <span className="text-5xl sm:text-6xl font-black text-white">{cleanName.charAt(0)}</span>
             )}
           </div>
           <div className="min-w-0 flex flex-col items-center">
@@ -399,14 +401,14 @@ export function CompanyDetailClient() {
           <Link href="/companies" className="hover:text-white transition-colors">
             Companies
           </Link>
-          {company.sector && (
+          {normalizedSector && (
             <>
               <ChevronRight size={12} className="text-[#52525B]" />
               <Link
-                href={`/companies?filter=${encodeURIComponent(company.sector.toLowerCase())}`}
+                href={`/companies?filter=${encodeURIComponent(normalizedSector.toLowerCase())}`}
                 className="hover:text-white transition-colors"
               >
-                {company.sector}
+                {normalizedSector}
               </Link>
             </>
           )}

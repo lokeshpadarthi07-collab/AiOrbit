@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/shadcn-button";
 import { Pagination } from "@/components/Pagination";
 import { cn } from "@/lib/utils";
 import { useQuery, keepPreviousData, useQueryClient } from "@tanstack/react-query";
+import { normalizeSector } from "@/lib/sector-utils";
 
 const PAGE_SIZE = 100;
 
@@ -175,18 +176,97 @@ function BoolPill({ value, trueLabel = "YES", falseLabel = "NO" }: { value: bool
   );
 }
 
-function LogoCell({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  const [failed, setFailed] = useState(false);
-  if (!logoUrl || failed) {
-    return <span className="text-sm font-bold text-neutral-900">{name.charAt(0)}</span>;
+function LogoCell({ name, logoUrl, company }: { name: string; logoUrl: string | null; company?: Company }) {
+  const [failedCount, setFailedCount] = useState(0);
+
+  const cleanName = formatCompanyName(name || "");
+  const companySlug = (company?.slug || cleanName || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const website = company?.website;
+
+  const logoSources = useMemo(() => {
+    const list: string[] = [];
+    if (logoUrl && logoUrl.trim()) {
+      list.push(logoUrl);
+    }
+    if (website && website.trim()) {
+      try {
+        const urlStr = website.startsWith("http") ? website : `https://${website}`;
+        const domain = new URL(urlStr).hostname;
+        if (domain) {
+          list.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+          list.push(`https://logo.clearbit.com/${domain}`);
+        }
+      } catch {}
+    }
+    if (companySlug) {
+      const ghMap: Record<string, string> = {
+        "openai": "openai",
+        "google": "google",
+        "google-deepmind": "google",
+        "anthropic": "anthropic",
+        "meta": "facebook",
+        "facebook": "facebook",
+        "microsoft": "microsoft",
+        "nvidia": "nvidia",
+        "stability-ai": "Stability-AI",
+        "stability": "Stability-AI",
+        "mistral-ai": "mistralai",
+        "mistral": "mistralai",
+        "cohere": "cohere-ai",
+        "hugging-face": "huggingface",
+        "huggingface": "huggingface",
+        "runway": "runwayml",
+        "runwayml": "runwayml",
+        "elevenlabs": "elevenlabs",
+        "replicate": "replicate",
+        "scale-ai": "scale-ai",
+        "xai": "xai-org",
+        "apple": "apple",
+        "amazon": "amazon",
+        "ibm": "ibm",
+        "groq": "groq",
+        "together-ai": "togethercomputer",
+        "pinecone": "pinecone-io",
+        "weaviate": "weaviate",
+        "chroma": "chroma-core",
+        "qdrant": "qdrant",
+        "langchain": "langchain-ai",
+        "llamaindex": "run-llama",
+      };
+      const ghOrg = ghMap[companySlug] || companySlug;
+      list.push(`https://github.com/${ghOrg}.png`);
+    }
+    return list;
+  }, [logoUrl, website, companySlug]);
+
+  const currentSrc = logoSources[failedCount];
+
+  if (!currentSrc || failedCount >= logoSources.length) {
+    const initials = cleanName.slice(0, 2).toUpperCase() || "AI";
+    const bgColors = [
+      "from-[#3b82f6] to-[#1d4ed8]",
+      "from-[#a855f7] to-[#6b21a8]",
+      "from-[#ec4899] to-[#be185d]",
+      "from-[#10b981] to-[#047857]",
+      "from-[#f59e0b] to-[#b45309]",
+      "from-[#06b6d4] to-[#0e7490]",
+    ];
+    const colorIndex = (cleanName.charCodeAt(0) || 0) % bgColors.length;
+    const gradient = bgColors[colorIndex];
+
+    return (
+      <div className={`flex h-full w-full items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-[13px] font-black text-white shadow-inner border border-white/20 select-none`}>
+        {initials}
+      </div>
+    );
   }
 
   return (
     <img
-      src={logoUrl}
-      alt={name}
-      className="h-8 w-8 object-contain"
-      onError={() => setFailed(true)}
+      src={currentSrc}
+      alt={cleanName}
+      className="h-full w-full object-contain rounded-md"
+      onError={() => setFailedCount((prev) => prev + 1)}
     />
   );
 }
@@ -243,6 +323,8 @@ function matchesSubcategory(c: Company, slug: string): boolean {
     if (t && t.toLowerCase().replace(/[-_]/g, " ").includes(slugLower)) return true;
   }
 
+  const cleanSector = normalizeSector(c.sector);
+  if (cleanSector && cleanSector.toLowerCase().replace(/[-_]/g, " ").includes(slugLower)) return true;
   if (c.sector && c.sector.toLowerCase().replace(/[-_]/g, " ").includes(slugLower)) return true;
   if (c.description && c.description.toLowerCase().includes(slugLower)) return true;
 
@@ -284,18 +366,32 @@ function CompanyRow({
   const cleanName = formatCompanyName(company.name);
   const safeSlug = cleanCompanySlug(company.slug);
 
+  const router = useRouter();
   const hasModels = authenticModels.length > 0 || (company._count?.aiModels || 0) > 0;
   const hasTools = (company.tools && company.tools.length > 0) || (company._count?.tools || 0) > 0;
-
   const derivedAiNative = hasAiNative !== null ? hasAiNative : (hasModels || hasTools ? true : null);
-  const derivedSector = company.sector || (hasModels ? "Foundation Models" : (hasTools ? "Generative AI" : null));
+  const rawSector = normalizeSector(company.sector);
+  const derivedSector = rawSector || (hasModels ? "Foundation Models" : (hasTools ? "Generative AI" : null));
+  const targetUrl = `/companies/${safeSlug}`;
+
+  const handleRowClick = () => {
+    router.push(targetUrl);
+  };
 
   return (
-    <Link
-      href={`/companies/${safeSlug}`}
-      role="listitem"
-      className={`group grid ${COL_TEMPLATE} ${COL_MIN_WIDTH} items-center gap-3 px-4 py-3 transition-all duration-200 focus-visible:outline-none border-b border-[#232326]/60 relative hover:bg-[#131316]/70`}
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={handleRowClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleRowClick();
+        }
+      }}
+      className={`group grid ${COL_TEMPLATE} ${COL_MIN_WIDTH} items-center gap-3 px-4 py-3 transition-all duration-200 focus-visible:outline-none border-b border-[#232326]/60 relative hover:bg-[#131316]/70 cursor-pointer`}
       onMouseEnter={(e) => {
+        try { router.prefetch(targetUrl); } catch {}
         prefetchUrl(`${API_URL}/api/v1/companies/${safeSlug}`);
         const el = e.currentTarget;
         el.style.boxShadow = `inset 3px 0 0 ${accentColor}`;
@@ -322,9 +418,9 @@ function CompanyRow({
       {/* Col 1: Logo */}
       <div
         data-logo="true"
-        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white transition-all duration-200"
+        className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white transition-all duration-200 p-1 shadow-sm"
       >
-        <LogoCell name={cleanName} logoUrl={logoSrc} />
+        <LogoCell name={cleanName} logoUrl={logoSrc} company={company} />
       </div>
 
       {/* Col 2: Name + Models */}
@@ -429,7 +525,7 @@ function CompanyRow({
       <div>
         <BookmarkBtn companyId={company.id} companyName={cleanName} />
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -571,7 +667,7 @@ export function CompaniesClient({ defaultCategory }: { defaultCategory?: string 
       // Filter by the actual Sector field from the DB.
       if (matchedSector) {
         candidates = candidates.filter((company) => {
-          return (company.sector || "").trim() === matchedSector;
+          return normalizeSector(company.sector) === matchedSector;
         });
       }
 
@@ -707,7 +803,7 @@ export function CompaniesClient({ defaultCategory }: { defaultCategory?: string 
             const country = company.country?.trim();
             if (country) countries.add(country);
 
-            const sector = company.sector?.trim();
+            const sector = normalizeSector(company.sector);
             if (sector) sectors.add(sector);
           });
         };
