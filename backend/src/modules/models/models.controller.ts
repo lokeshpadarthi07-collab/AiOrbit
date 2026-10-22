@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { getPrisma } from '../../lib/prisma.js';
 import { ModelsService } from './models.service.js';
 import { modelsListQuerySchema, modelsCompareQuerySchema, logosListQuerySchema } from './models.schema.js';
+import { EMBEDDED_BRAND_SVGS } from './brand-logos-data.js';
 
 export class ModelsController {
   async getFilterOptions(c: Context) {
@@ -187,24 +188,35 @@ export class ModelsController {
 
     try {
       const logo = await service.getLogoBySlug(slug);
-      if (!logo) {
-        return c.text('Logo not found', 404);
+      let svg = logo?.svgContent;
+
+      if (!svg) {
+        const slugLower = slug.toLowerCase();
+        svg = EMBEDDED_BRAND_SVGS[slugLower];
       }
 
-      if (logo.svgContent) {
-        return c.body(logo.svgContent, 200, {
+      if (svg) {
+        return c.body(svg, 200, {
           'Content-Type': 'image/svg+xml; charset=utf-8',
           'Cache-Control': 'public, max-age=86400',
         });
       }
 
-      const initial = (logo.name || slug).charAt(0).toUpperCase();
+      const initial = (logo?.name || slug).charAt(0).toUpperCase();
       const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><rect width="100" height="100" rx="20" fill="#18181B"/><text x="50" y="55" fill="#E4E4E7" font-family="sans-serif" font-size="44" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initial}</text></svg>`;
       return c.body(fallbackSvg, 200, {
         'Content-Type': 'image/svg+xml; charset=utf-8',
         'Cache-Control': 'public, max-age=86400',
       });
-    } catch (error: unknown) {
+    } catch {
+      const slugLower = slug.toLowerCase();
+      const svg = EMBEDDED_BRAND_SVGS[slugLower];
+      if (svg) {
+        return c.body(svg, 200, {
+          'Content-Type': 'image/svg+xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+        });
+      }
       return c.text('Error retrieving logo', 500);
     }
   }

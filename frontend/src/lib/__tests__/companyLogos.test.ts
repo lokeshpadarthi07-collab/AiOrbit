@@ -62,29 +62,17 @@ describe("Database logo retrieval", () => {
   });
 });
 
-describe("LOCAL_LOGO_MAP structure", () => {
-  it("ensures all entries have valid logo paths or strings", () => {
-    const values = Object.values(LOCAL_LOGO_MAP);
-    expect(values.length).toBeGreaterThan(0);
-    for (const val of values) {
+describe("LOCAL_LOGO_MAP and Database Brand Logo Retrieval", () => {
+  it("ensures all entries have valid database logo retrieval endpoints", () => {
+    const keys = ["openai", "anthropic", "google", "meta", "mistral", "microsoft", "nvidia", "huggingface", "perplexity"];
+    for (const key of keys) {
+      const val = LOCAL_LOGO_MAP[key];
       expect(typeof val).toBe("string");
-      expect(val.length).toBeGreaterThan(0);
+      expect(val).toMatch(/^\/api\/v1\/models\/logos\/[a-z0-9_-]+\/svg$/);
     }
   });
 
-  it("ensures all referenced local SVG files exist in upstream public/logos", () => {
-    const values = [...new Set(Object.values(LOCAL_LOGO_MAP))];
-    for (const val of values) {
-      if (val.startsWith("/logos/")) {
-        const filePath = path.join(process.cwd(), "public", val);
-        expect(fs.existsSync(filePath), `File "${val}" must exist on disk`).toBe(true);
-      }
-    }
-  });
-});
-
-describe("resolveCompanyLogo", () => {
-  it("retrieves logos for AI labs and companies via database endpoints or upstream local SVGs", () => {
+  it("retrieves logos for AI labs and companies via database endpoints", () => {
     const allCompanies = [
       "01.AI", "AI2", "AI21", "Alibaba", "Amazon", "Anthropic", "Arcee AI",
       "Argilla", "BAAI", "Baidu", "Bespoke Labs", "BigCode", "ByteDance",
@@ -107,8 +95,7 @@ describe("resolveCompanyLogo", () => {
     for (const company of allCompanies) {
       const resolved = resolveCompanyLogo(company);
       expect(resolved, `Company "${company}" must have a non-null logo`).not.toBeNull();
-      const isDatabaseOrLocal = resolved?.startsWith("/logos/") || resolved?.startsWith("/api/v1/models/logos/");
-      expect(isDatabaseOrLocal, `Company "${company}" logo must be retrieved from database or local`).toBe(true);
+      expect(resolved?.startsWith("/api/v1/models/logos/"), `Company "${company}" logo must be retrieved from database endpoint`).toBe(true);
     }
   });
 
@@ -128,9 +115,9 @@ describe("resolveCompanyLogo", () => {
   it("resolves repository owners to authentic company logos or GitHub avatar CDNs", () => {
     expect(resolveCompanyLogo("suno-ai", null, true)).toBe("/api/v1/models/logos/suno/svg");
     expect(resolveCompanyLogo("AUTOMATIC1111", null, true)).toBe("/api/v1/models/logos/stability/svg");
-    expect(resolveCompanyLogo("huggingface", null, true)).toBe("/logos/huggingface.svg");
-    expect(resolveCompanyLogo("meta-llama", null, true)).toBe("/logos/meta.svg");
-    expect(resolveCompanyLogo("facebookresearch", null, true)).toBe("/logos/meta.svg");
+    expect(resolveCompanyLogo("huggingface", null, true)).toBe("/api/v1/models/logos/huggingface/svg");
+    expect(resolveCompanyLogo("meta-llama", null, true)).toBe("/api/v1/models/logos/meta/svg");
+    expect(resolveCompanyLogo("facebookresearch", null, true)).toBe("/api/v1/models/logos/meta/svg");
 
     // Generic github owner fallback
     expect(resolveCompanyLogo("some-developer", null, true)).toBe("https://github.com/some-developer.png?size=128");
@@ -170,7 +157,7 @@ describe("resolveModelBrand", () => {
       provider: null
     });
     expect(wizard.companyName).toBe("Microsoft");
-    expect(wizard.logoUrl).toBe("/logos/microsoft.svg");
+    expect(wizard.logoUrl).toBe("/api/v1/models/logos/microsoft/svg");
 
     // TinyLlama attributed to Meta in raw DB
     const tiny = resolveModelBrand({

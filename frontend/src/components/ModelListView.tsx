@@ -56,7 +56,7 @@ function isTruthy(...vals: Array<unknown>): boolean {
 }
 
 function resolveProviderLogo(src: string | null | undefined, name: string) {
-  if (name.trim().toLowerCase().includes("openai")) return "/logos/openai.svg";
+  if (name.trim().toLowerCase().includes("openai")) return "/api/v1/models/logos/openai/svg";
   return src ?? null;
 }
 
@@ -517,21 +517,7 @@ function ModelRow({
   }, [resolvedLogo, localFallbackLogo]);
 
   const handleImageError = () => {
-    if (currentLogo?.startsWith("/api/v1/models/logos/")) {
-      const match = currentLogo.match(/\/api\/v1\/models\/logos\/([^/]+)\/svg/);
-      if (match && match[1]) {
-        const localSvg = `/logos/${match[1]}.svg`;
-        if (currentLogo !== localSvg) {
-          setCurrentLogo(localSvg);
-          return;
-        }
-      }
-    }
-    if (currentLogo && currentLogo !== localFallbackLogo && localFallbackLogo) {
-      setCurrentLogo(localFallbackLogo);
-    } else {
-      setLogoFailed(true);
-    }
+    setLogoFailed(true);
   };
   const primaryTask = model.primaryTask ?? null;
   const openSource =

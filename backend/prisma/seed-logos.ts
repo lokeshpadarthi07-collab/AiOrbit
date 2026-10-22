@@ -94,34 +94,20 @@ export const BRAND_LOGOS: LogoDefinition[] = [
   { slug: "bigcode", name: "BigCode", logoFile: "bigcode.svg", domain: "huggingface.co/bigcode", category: "model_provider", description: "Open Code LLM research and StarCoder models", creatorAliases: ["bigcode", "starcoder"] },
 ];
 
+import { EMBEDDED_BRAND_SVGS } from "../src/modules/models/brand-logos-data.js";
+
 export async function seedLogos(prisma: PrismaClient) {
   console.log(`Starting logo database population (${BRAND_LOGOS.length} logos)...`);
-
-  const possibleLogoDirs = [
-    path.resolve(process.cwd(), "../frontend/public/logos"),
-    path.resolve(process.cwd(), "frontend/public/logos"),
-    path.resolve(process.cwd(), "public/logos"),
-  ];
-
-  let logoDir = possibleLogoDirs.find((d) => fs.existsSync(d)) || "";
 
   let insertedCount = 0;
   const brandLogoMap = new Map<string, string>(); // slug -> brandLogo.id
 
   for (const item of BRAND_LOGOS) {
-    let svgContent: string | null = null;
-    if (logoDir) {
-      const filePath = path.join(logoDir, item.logoFile);
-      if (fs.existsSync(filePath)) {
-        try {
-          svgContent = fs.readFileSync(filePath, "utf-8");
-        } catch {
-          // ignore read error
-        }
-      }
-    }
+    const slugKey = item.slug.toLowerCase();
+    const fileKey = item.logoFile ? item.logoFile.replace(/\.svg$/, "").toLowerCase() : slugKey;
+    const svgContent: string | null = EMBEDDED_BRAND_SVGS[slugKey] || EMBEDDED_BRAND_SVGS[fileKey] || null;
 
-    const logoUrl = `/logos/${item.logoFile}`;
+    const logoUrl = `/api/v1/models/logos/${item.slug}/svg`;
 
     const brandLogo = await prisma.brandLogo.upsert({
       where: { slug: item.slug },
@@ -146,6 +132,30 @@ export async function seedLogos(prisma: PrismaClient) {
 
     brandLogoMap.set(item.slug, brandLogo.id);
     insertedCount++;
+  }
+
+  // Also seed any extra embedded logos present in EMBEDDED_BRAND_SVGS not explicitly in BRAND_LOGOS
+  for (const [slug, svg] of Object.entries(EMBEDDED_BRAND_SVGS)) {
+    if (!brandLogoMap.has(slug)) {
+      const name = slug.charAt(0).toUpperCase() + slug.slice(1);
+      const logoUrl = `/api/v1/models/logos/${slug}/svg`;
+      const brandLogo = await prisma.brandLogo.upsert({
+        where: { slug },
+        update: {
+          svgContent: svg,
+          logoUrl,
+        },
+        create: {
+          slug,
+          name,
+          logoUrl,
+          svgContent: svg,
+          category: "model_provider",
+        },
+      });
+      brandLogoMap.set(slug, brandLogo.id);
+      insertedCount++;
+    }
   }
 
   console.log(`Successfully stored/upserted ${insertedCount} brand logos in database.`);

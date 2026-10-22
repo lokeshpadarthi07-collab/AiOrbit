@@ -90,21 +90,6 @@ function ProviderLogo({
   }, [resolvedSrc]);
 
   const handleError = () => {
-    if (currentSrc?.startsWith("/api/v1/models/logos/")) {
-      const match = currentSrc.match(/\/api\/v1\/models\/logos\/([^/]+)\/svg/);
-      if (match && match[1]) {
-        const localSvg = `/logos/${match[1]}.svg`;
-        if (currentSrc !== localSvg) {
-          setCurrentSrc(localSvg);
-          return;
-        }
-      }
-    }
-    const local = resolveCompanyLogo(name);
-    if (local && local !== currentSrc) {
-      setCurrentSrc(local);
-      return;
-    }
     setFailed(true);
   };
 

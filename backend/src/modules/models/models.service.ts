@@ -431,7 +431,7 @@ export class ModelsService {
         id: 'fallback',
         slug: creatorLower.replace(/[^a-z0-9]+/g, '-'),
         name: model.creator,
-        logoUrl: model.provider?.logoUrl || `/logos/${creatorLower.replace(/[^a-z0-9]+/g, '')}.svg`,
+        logoUrl: model.provider?.logoUrl || `/api/v1/models/logos/${creatorLower.replace(/[^a-z0-9]+/g, '')}/svg`,
         svgContent: null,
         domain: null,
       },

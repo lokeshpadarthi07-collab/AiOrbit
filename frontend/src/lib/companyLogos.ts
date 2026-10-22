@@ -22,64 +22,63 @@ export function getDatabaseLogoUrl(slug: string): string {
 }
 
 /**
- * Upstream baseline local logos that exist in public/logos/
- */
-export const LOCAL_LOGO_MAP: Record<string, string> = {
-  // OpenAI
-  "openai": "/logos/openai.svg",
-  "chatgpt": "/logos/openai.svg",
-  "gpt": "/logos/openai.svg",
-  "o1": "/logos/openai.svg",
-  "o3": "/logos/openai.svg",
-
-  // Anthropic
-  "anthropic": "/logos/anthropic.svg",
-  "claude": "/logos/anthropic.svg",
-
-  // Google
-  "google": "/logos/google.svg",
-  "gemini": "/logos/google.svg",
-
-  // Meta
-  "meta": "/logos/meta.svg",
-  "meta ai": "/logos/meta.svg",
-  "meta-llama": "/logos/meta.svg",
-  "facebook": "/logos/meta.svg",
-  "facebookresearch": "/logos/meta.svg",
-  "llama": "/logos/meta.svg",
-  "fair": "/logos/meta.svg",
-
-  // Mistral
-  "mistral": "/logos/mistralai.svg",
-  "mistral ai": "/logos/mistralai.svg",
-  "mistralai": "/logos/mistralai.svg",
-  "codestral": "/logos/mistralai.svg",
-  "mixtral": "/logos/mistralai.svg",
-
-  // Microsoft
-  "microsoft": "/logos/microsoft.svg",
-  "microsoft research": "/logos/microsoft.svg",
-  "msft": "/logos/microsoft.svg",
-
-  // NVIDIA
-  "nvidia": "/logos/nvidia.svg",
-  "nemotron": "/logos/nvidia.svg",
-
-  // Hugging Face
-  "hugging face": "/logos/huggingface.svg",
-  "huggingface": "/logos/huggingface.svg",
-
-  // Perplexity
-  "perplexity": "/logos/perplexity.svg",
-  "perplexity ai": "/logos/perplexity.svg",
-};
-
-/**
  * Database Brand Slugs:
  * Maps company / creator keywords to their database `BrandLogo` slug.
- * These are stored in PostgreSQL and retrieved via `/api/v1/models/logos/:slug/svg`.
+ * All company logos are stored in the database and retrieved via `/api/v1/models/logos/:slug/svg`.
  */
 export const DATABASE_BRAND_SLUGS: Record<string, string> = {
+  // OpenAI
+  "openai": "openai",
+  "chatgpt": "openai",
+  "gpt": "openai",
+  "o1": "openai",
+  "o3": "openai",
+
+  // Anthropic
+  "anthropic": "anthropic",
+  "claude": "anthropic",
+
+  // Google & DeepMind
+  "google": "google",
+  "gemini": "google",
+  "gemma": "google",
+  "deepmind": "deepmind",
+  "google deepmind": "deepmind",
+
+  // Meta
+  "meta": "meta",
+  "meta ai": "meta",
+  "meta-llama": "meta",
+  "facebook": "meta",
+  "facebookresearch": "meta",
+  "llama": "meta",
+  "fair": "meta",
+
+  // Mistral
+  "mistral": "mistralai",
+  "mistral ai": "mistralai",
+  "mistralai": "mistralai",
+  "codestral": "mistralai",
+  "mixtral": "mistralai",
+
+  // Microsoft
+  "microsoft": "microsoft",
+  "microsoft research": "microsoft",
+  "msft": "microsoft",
+  "phi": "microsoft",
+
+  // NVIDIA
+  "nvidia": "nvidia",
+  "nemotron": "nvidia",
+
+  // Hugging Face
+  "hugging face": "huggingface",
+  "huggingface": "huggingface",
+  "smollm": "huggingface",
+
+  // Perplexity
+  "perplexity": "perplexity",
+  "perplexity ai": "perplexity",
   // DeepSeek
   "deepseek": "deepseek",
   "deepseek ai": "deepseek",
@@ -296,8 +295,22 @@ export const DATABASE_BRAND_SLUGS: Record<string, string> = {
   "kuaishou technology": "kling",
   "allen institute for ai (ai2)": "ai2",
   "mistral ai / nvidia": "mistralai",
-  "qwen / alibaba": "qwen",
 };
+
+/**
+ * Backwards compatibility proxy for any legacy imports.
+ * Dynamically resolves brands to their database logo endpoint.
+ */
+export const LOCAL_LOGO_MAP: Record<string, string> = new Proxy({} as Record<string, string>, {
+  get: (_, prop: string) => {
+    if (typeof prop !== "string") return undefined;
+    const slug = DATABASE_BRAND_SLUGS[prop.toLowerCase()];
+    return slug ? getDatabaseLogoUrl(slug) : undefined;
+  },
+  has: (_, prop: string) => {
+    return typeof prop === "string" && prop.toLowerCase() in DATABASE_BRAND_SLUGS;
+  },
+});
 
 /**
  * Normalizes string for key lookup.
@@ -316,10 +329,9 @@ function normalizeName(name: string): string {
  * Resolves a company/owner name to the best authentic logo URL.
  * 
  * 1. Checks existing database URL
- * 2. Checks upstream local SVG baseline
- * 3. Checks database BrandLogo retrieval endpoint
- * 4. Checks GitHub owner CDN
- * 5. Fallback domain favicon
+ * 2. Checks database BrandLogo retrieval endpoint
+ * 3. Checks GitHub owner CDN
+ * 4. Fallback domain favicon
  */
 export function resolveCompanyLogo(
   companyOrOwner?: string | null,
@@ -339,13 +351,7 @@ export function resolveCompanyLogo(
   const compact = normalized.replace(/\s+/g, "");
   const rawCompact = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "");
 
-  // 2. Check upstream bundled local SVG map
-  if (LOCAL_LOGO_MAP[rawLower]) return LOCAL_LOGO_MAP[rawLower];
-  if (LOCAL_LOGO_MAP[normalized]) return LOCAL_LOGO_MAP[normalized];
-  if (LOCAL_LOGO_MAP[compact]) return LOCAL_LOGO_MAP[compact];
-  if (LOCAL_LOGO_MAP[rawCompact]) return LOCAL_LOGO_MAP[rawCompact];
-
-  // 3. Check database BrandLogo table retrieval endpoint
+  // 2. Check database BrandLogo table retrieval endpoint
   if (DATABASE_BRAND_SLUGS[rawLower]) {
     return getDatabaseLogoUrl(DATABASE_BRAND_SLUGS[rawLower]);
   }
@@ -359,13 +365,8 @@ export function resolveCompanyLogo(
     return getDatabaseLogoUrl(DATABASE_BRAND_SLUGS[rawCompact]);
   }
 
-  // 4. Strict word matching for upstream and database brands
+  // 3. Strict word matching for database brands
   const words = normalized.split(/\s+/);
-  for (const [key, logoPath] of Object.entries(LOCAL_LOGO_MAP)) {
-    if (words.includes(key)) {
-      return logoPath;
-    }
-  }
   for (const [key, slug] of Object.entries(DATABASE_BRAND_SLUGS)) {
     if (words.includes(key)) {
       return getDatabaseLogoUrl(slug);
@@ -442,7 +443,7 @@ export function resolveModelBrand(model: {
     return { companyName: "Stability AI", logoUrl: getDatabaseLogoUrl("stability") };
   }
   if (nameLower.startsWith("wizardlm") || nameLower.startsWith("wizardcoder") || nameLower.startsWith("wizard math")) {
-    return { companyName: "Microsoft", logoUrl: "/logos/microsoft.svg" };
+    return { companyName: "Microsoft", logoUrl: getDatabaseLogoUrl("microsoft") };
   }
   if (nameLower === "vicuna" || nameLower.startsWith("wizard vicuna")) {
     return { companyName: "LMSYS", logoUrl: getDatabaseLogoUrl("lmsys") };
@@ -481,13 +482,13 @@ export function resolveModelBrand(model: {
     return { companyName: "BAAI", logoUrl: getDatabaseLogoUrl("baai") };
   }
   if (nameLower.startsWith("gemma") || nameLower.startsWith("shieldgemma") || nameLower.startsWith("codegemma") || nameLower.startsWith("translategemma") || nameLower.startsWith("medgemma")) {
-    return { companyName: "Google", logoUrl: "/logos/google.svg" };
+    return { companyName: "Google", logoUrl: getDatabaseLogoUrl("google") };
   }
   if (nameLower.startsWith("qwen") || nameLower.startsWith("qwq") || nameLower.startsWith("smallthinker")) {
     return { companyName: "Alibaba", logoUrl: getDatabaseLogoUrl("qwen") };
   }
   if (nameLower.startsWith("smollm")) {
-    return { companyName: "Hugging Face", logoUrl: "/logos/huggingface.svg" };
+    return { companyName: "Hugging Face", logoUrl: getDatabaseLogoUrl("huggingface") };
   }
   if (nameLower.startsWith("solar")) {
     return { companyName: "Upstage", logoUrl: getDatabaseLogoUrl("upstage") };
