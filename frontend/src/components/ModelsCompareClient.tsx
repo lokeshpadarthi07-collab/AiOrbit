@@ -48,6 +48,51 @@ const ROWS: { key: string; label: string; get: (m: ModelDetail) => string }[] = 
   },
 ];
 
+function CompareModelLogo({ src, name }: { src: string | null; name: string }) {
+  const [currentSrc, setCurrentSrc] = useState<string | null>(src);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setFailed(false);
+  }, [src]);
+
+  const handleError = () => {
+    if (currentSrc?.startsWith("/api/v1/models/logos/")) {
+      const match = currentSrc.match(/\/api\/v1\/models\/logos\/([^/]+)\/svg/);
+      if (match && match[1]) {
+        const localSvg = `/logos/${match[1]}.svg`;
+        if (currentSrc !== localSvg) {
+          setCurrentSrc(localSvg);
+          return;
+        }
+      }
+    }
+    const local = resolveCompanyLogo(name);
+    if (local && local !== currentSrc) {
+      setCurrentSrc(local);
+      return;
+    }
+    setFailed(true);
+  };
+
+  if (!currentSrc || failed) {
+    return <span className="text-xs font-bold text-neutral-900">{name.charAt(0).toUpperCase()}</span>;
+  }
+
+  return (
+    <Image
+      src={currentSrc}
+      alt={`${name} logo`}
+      width={32}
+      height={32}
+      className="h-6 w-6 md:h-7 md:w-7 object-contain"
+      onError={handleError}
+      unoptimized
+    />
+  );
+}
+
 export function ModelsCompareClient() {
   const searchParams = useSearchParams();
   const ids = (searchParams.get("ids") || "")
@@ -118,19 +163,8 @@ export function ModelsCompareClient() {
                       <th key={m.id} className="min-w-[200px] px-4 py-3">
                         <Link href={`/models/${m.id}`} className="group block">
                           <div className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white text-xs font-bold text-neutral-900">
-                              {companyLogo ? (
-                                <Image
-                                  src={companyLogo}
-                                  alt={`${compName} logo`}
-                                  width={32}
-                                  height={32}
-                                  className="h-6 w-6 md:h-7 md:w-7 object-contain"
-                                  unoptimized
-                                />
-                              ) : (
-                                compName.charAt(0).toUpperCase()
-                              )}
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#232326]/60 bg-white">
+                              <CompareModelLogo src={companyLogo} name={compName} />
                             </div>
                             <span className="text-[13px] font-semibold text-white group-hover:underline">
                               {m.name}

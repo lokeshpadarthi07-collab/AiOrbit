@@ -98,7 +98,10 @@ describe("resolveCompanyLogo", () => {
       "OpenCoder Team", "Pankaj Mathur", "Perceptron", "Perplexity", "Poolside",
       "Reka AI", "Sailor2", "Sentence Transformers", "Snowflake", "Stability AI",
       "StepFun", "Technology Innovation Institute", "Tencent", "Thinking Machines",
-      "Upstage", "Writer", "Xiaomi", "Z.ai", "Zhipu AI", "oobabooga", "xAI"
+      "Upstage", "Writer", "Xiaomi", "Z.ai", "Zhipu AI", "oobabooga", "xAI",
+      "Inflection AI", "Recraft AI", "Cartesia AI", "Fish Audio", "Voyage AI",
+      "2noise", "Kuaishou", "Ideogram", "Runway", "Luma AI", "Pika Labs",
+      "ElevenLabs", "Suno"
     ];
 
     for (const company of allCompanies) {
@@ -222,5 +225,68 @@ describe("resolveModelBrand", () => {
     });
     expect(starling.companyName).toBe("Nexusflow");
     expect(starling.logoUrl).toBe("/api/v1/models/logos/nexusflow/svg");
+
+    // Inflection AI
+    const inflection = resolveModelBrand({
+      name: "Pi (Inflection 2.5)",
+      creator: "Inflection AI",
+      provider: null
+    });
+    expect(inflection.companyName).toBe("Inflection AI");
+    expect(inflection.logoUrl).toBe("/api/v1/models/logos/inflection/svg");
+
+    // Recraft AI
+    const recraft = resolveModelBrand({
+      name: "Recraft 20B",
+      creator: "Recraft AI",
+      provider: null
+    });
+    expect(recraft.companyName).toBe("Recraft AI");
+    expect(recraft.logoUrl).toBe("/api/v1/models/logos/recraft/svg");
+
+    // Cartesia AI
+    const cartesia = resolveModelBrand({
+      name: "Cartesia Sonic",
+      creator: "Cartesia AI",
+      provider: null
+    });
+    expect(cartesia.companyName).toBe("Cartesia AI");
+    expect(cartesia.logoUrl).toBe("/api/v1/models/logos/cartesia/svg");
+
+    // Fish Audio
+    const fish = resolveModelBrand({
+      name: "Fish Speech 1.5",
+      creator: "Fish Audio",
+      provider: null
+    });
+    expect(fish.companyName).toBe("Fish Audio");
+    expect(fish.logoUrl).toBe("/api/v1/models/logos/fishaudio/svg");
+
+    // Voyage AI
+    const voyage = resolveModelBrand({
+      name: "voyage-code-3",
+      creator: "Voyage AI",
+      provider: null
+    });
+    expect(voyage.companyName).toBe("Voyage AI");
+    expect(voyage.logoUrl).toBe("/api/v1/models/logos/voyageai/svg");
+
+    // 2noise (ChatTTS)
+    const chattts = resolveModelBrand({
+      name: "ChatTTS",
+      creator: "2noise",
+      provider: null
+    });
+    expect(chattts.companyName).toBe("2noise");
+    expect(chattts.logoUrl).toBe("/api/v1/models/logos/2noise/svg");
+
+    // Kling (Kuaishou)
+    const kling = resolveModelBrand({
+      name: "Kling 1.5 Pro",
+      creator: "Kuaishou",
+      provider: null
+    });
+    expect(kling.companyName).toBe("Kuaishou");
+    expect(kling.logoUrl).toBe("/api/v1/models/logos/kling/svg");
   });
 });

@@ -274,6 +274,29 @@ export const DATABASE_BRAND_SLUGS: Record<string, string> = {
   "pytorch": "pytorch",
   "tensorflow": "tensorflow",
   "bigcode": "bigcode",
+  "bigcode / hugging face": "bigcode",
+  "inflection": "inflection",
+  "inflection ai": "inflection",
+  "pi": "inflection",
+  "pi ai": "inflection",
+  "recraft": "recraft",
+  "recraft ai": "recraft",
+  "cartesia": "cartesia",
+  "cartesia ai": "cartesia",
+  "sonic": "cartesia",
+  "fish audio": "fishaudio",
+  "fishaudio": "fishaudio",
+  "fish speech": "fishaudio",
+  "voyage": "voyageai",
+  "voyage ai": "voyageai",
+  "voyageai": "voyageai",
+  "2noise": "2noise",
+  "chattts": "2noise",
+  "chat-tts": "2noise",
+  "kuaishou technology": "kling",
+  "allen institute for ai (ai2)": "ai2",
+  "mistral ai / nvidia": "mistralai",
+  "qwen / alibaba": "qwen",
 };
 
 /**
@@ -543,6 +566,51 @@ export function resolveModelBrand(model: {
   }
   if (nameLower.includes("moondream")) {
     return { companyName: "Moondream", logoUrl: getDatabaseLogoUrl("moondream") };
+  }
+  if (nameLower.includes("inflection") || nameLower.startsWith("pi ") || nameLower.includes("pi (inflection")) {
+    return { companyName: "Inflection AI", logoUrl: getDatabaseLogoUrl("inflection") };
+  }
+  if (nameLower.startsWith("recraft")) {
+    return { companyName: "Recraft AI", logoUrl: getDatabaseLogoUrl("recraft") };
+  }
+  if (nameLower.startsWith("cartesia") || nameLower.includes("sonic")) {
+    return { companyName: "Cartesia AI", logoUrl: getDatabaseLogoUrl("cartesia") };
+  }
+  if (nameLower.startsWith("fish speech") || nameLower.includes("fish-speech") || nameLower.startsWith("fish audio")) {
+    return { companyName: "Fish Audio", logoUrl: getDatabaseLogoUrl("fishaudio") };
+  }
+  if (nameLower.startsWith("voyage")) {
+    return { companyName: "Voyage AI", logoUrl: getDatabaseLogoUrl("voyageai") };
+  }
+  if (nameLower.includes("chattts") || nameLower.includes("chat-tts") || nameLower.includes("2noise")) {
+    return { companyName: "2noise", logoUrl: getDatabaseLogoUrl("2noise") };
+  }
+  if (nameLower.startsWith("kling")) {
+    return { companyName: "Kuaishou", logoUrl: getDatabaseLogoUrl("kling") };
+  }
+  if (nameLower.startsWith("flux")) {
+    return { companyName: "Black Forest Labs", logoUrl: getDatabaseLogoUrl("flux") };
+  }
+  if (nameLower.startsWith("midjourney")) {
+    return { companyName: "Midjourney", logoUrl: getDatabaseLogoUrl("midjourney") };
+  }
+  if (nameLower.startsWith("ideogram")) {
+    return { companyName: "Ideogram", logoUrl: getDatabaseLogoUrl("ideogram") };
+  }
+  if (nameLower.startsWith("runway")) {
+    return { companyName: "Runway", logoUrl: getDatabaseLogoUrl("runway") };
+  }
+  if (nameLower.startsWith("luma") || nameLower.includes("dream machine")) {
+    return { companyName: "Luma AI", logoUrl: getDatabaseLogoUrl("luma") };
+  }
+  if (nameLower.startsWith("pika")) {
+    return { companyName: "Pika Labs", logoUrl: getDatabaseLogoUrl("pika") };
+  }
+  if (nameLower.startsWith("elevenlabs")) {
+    return { companyName: "ElevenLabs", logoUrl: getDatabaseLogoUrl("elevenlabs") };
+  }
+  if (nameLower.startsWith("suno")) {
+    return { companyName: "Suno", logoUrl: getDatabaseLogoUrl("suno") };
   }
 
   // Default attribution

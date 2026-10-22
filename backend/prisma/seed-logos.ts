@@ -77,6 +77,21 @@ export const BRAND_LOGOS: LogoDefinition[] = [
   { slug: "together", name: "Together AI", logoFile: "together.svg", domain: "together.ai", category: "model_provider", description: "Open model cloud and RedPajama datasets", creatorAliases: ["together", "together ai", "redpajama"] },
   { slug: "ollama", name: "Ollama", logoFile: "ollama.svg", domain: "ollama.com", category: "model_provider", description: "Local model runtime and distribution", creatorAliases: ["ollama"] },
   { slug: "vllm", name: "vLLM", logoFile: "vllm.svg", domain: "vllm.ai", category: "model_provider", description: "High-throughput and memory-efficient LLM serving", creatorAliases: ["vllm"] },
+  { slug: "inflection", name: "Inflection AI", logoFile: "inflection.svg", domain: "inflection.ai", category: "model_provider", description: "Creator of Pi personal intelligence and Inflection 2.5", creatorAliases: ["inflection", "inflection ai", "pi"] },
+  { slug: "recraft", name: "Recraft AI", logoFile: "recraft.svg", domain: "recraft.ai", category: "model_provider", description: "Creator of Recraft 20B visual foundation models", creatorAliases: ["recraft", "recraft ai"] },
+  { slug: "cartesia", name: "Cartesia AI", logoFile: "cartesia.svg", domain: "cartesia.ai", category: "model_provider", description: "Creator of Sonic ultra-fast voice foundation models", creatorAliases: ["cartesia", "cartesia ai", "sonic"] },
+  { slug: "fishaudio", name: "Fish Audio", logoFile: "fishaudio.svg", domain: "fish.audio", category: "model_provider", description: "Creator of Fish Speech open voice models", creatorAliases: ["fish audio", "fishaudio", "fish speech"] },
+  { slug: "voyageai", name: "Voyage AI", logoFile: "voyageai.svg", domain: "voyageai.com", category: "model_provider", description: "State of the art embedding and retrieval models", creatorAliases: ["voyage", "voyage ai", "voyageai"] },
+  { slug: "2noise", name: "2noise", logoFile: "2noise.svg", domain: "chattts.com", category: "model_provider", description: "Creator of ChatTTS conversational speech synthesis", creatorAliases: ["2noise", "chattts", "chat-tts"] },
+  { slug: "baai", name: "BAAI", logoFile: "baai.svg", domain: "baai.ac.cn", category: "model_provider", description: "Beijing Academy of AI and BGE embedding models", creatorAliases: ["baai", "bge"] },
+  { slug: "kling", name: "Kuaishou", logoFile: "kling.svg", domain: "klingai.com", category: "model_provider", description: "Creator of Kling AI high-fidelity video generation", creatorAliases: ["kling", "kuaishou", "kuaishou technology"] },
+  { slug: "pika", name: "Pika Labs", logoFile: "pika.svg", domain: "pika.art", category: "model_provider", description: "Creator of Pika video generation models", creatorAliases: ["pika", "pika labs"] },
+  { slug: "elevenlabs", name: "ElevenLabs", logoFile: "elevenlabs.svg", domain: "elevenlabs.io", category: "model_provider", description: "Voice AI research and text-to-speech models", creatorAliases: ["elevenlabs", "eleven labs"] },
+  { slug: "ideogram", name: "Ideogram", logoFile: "ideogram.svg", domain: "ideogram.ai", category: "model_provider", description: "Generative image foundation models with typography", creatorAliases: ["ideogram"] },
+  { slug: "runway", name: "Runway", logoFile: "runway.svg", domain: "runwayml.com", category: "model_provider", description: "Creator of Gen-3 Alpha and Gen-2 video models", creatorAliases: ["runway", "runwayml"] },
+  { slug: "luma", name: "Luma AI", logoFile: "luma.svg", domain: "lumalabs.ai", category: "model_provider", description: "Creator of Dream Machine generative video models", creatorAliases: ["luma", "luma ai"] },
+  { slug: "suno", name: "Suno", logoFile: "suno.svg", domain: "suno.com", category: "model_provider", description: "Generative audio and music composition models", creatorAliases: ["suno", "suno ai"] },
+  { slug: "bigcode", name: "BigCode", logoFile: "bigcode.svg", domain: "huggingface.co/bigcode", category: "model_provider", description: "Open Code LLM research and StarCoder models", creatorAliases: ["bigcode", "starcoder"] },
 ];
 
 export async function seedLogos(prisma: PrismaClient) {

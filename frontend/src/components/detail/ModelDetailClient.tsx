@@ -80,8 +80,34 @@ function ProviderLogo({
   name: string;
   size?: "small" | "large";
 }) {
-  const [failed, setFailed] = useState(false);
   const resolvedSrc = resolveProviderLogo(src, name);
+  const [currentSrc, setCurrentSrc] = useState<string | null>(resolvedSrc);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(resolvedSrc);
+    setFailed(false);
+  }, [resolvedSrc]);
+
+  const handleError = () => {
+    if (currentSrc?.startsWith("/api/v1/models/logos/")) {
+      const match = currentSrc.match(/\/api\/v1\/models\/logos\/([^/]+)\/svg/);
+      if (match && match[1]) {
+        const localSvg = `/logos/${match[1]}.svg`;
+        if (currentSrc !== localSvg) {
+          setCurrentSrc(localSvg);
+          return;
+        }
+      }
+    }
+    const local = resolveCompanyLogo(name);
+    if (local && local !== currentSrc) {
+      setCurrentSrc(local);
+      return;
+    }
+    setFailed(true);
+  };
+
   const boxClass =
     size === "large"
       ? "h-16 w-16 rounded-xl sm:h-20 sm:w-20 sm:rounded-2xl"
@@ -92,14 +118,14 @@ function ProviderLogo({
     <div
       className={`relative flex ${boxClass} shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-white shadow-lg shadow-black/20`}
     >
-      {resolvedSrc && !failed ? (
+      {currentSrc && !failed ? (
         <Image
-          src={resolvedSrc}
+          src={currentSrc}
           alt={`${name} logo`}
           width={imageSize}
           height={imageSize}
           className="h-[78%] w-[78%] object-contain"
-          onError={() => setFailed(true)}
+          onError={handleError}
           priority={size === "large"}
           unoptimized
         />
