@@ -34,10 +34,6 @@ const nextConfig: NextConfig = {
         destination: "https://ai-orbit.palamrendra-pm.workers.dev/:path*",
       },
       {
-        source: "/api/v1/models/logos/:path*",
-        destination: "https://ai-orbit.palamrendra-pm.workers.dev/api/v1/models/logos/:path*",
-      },
-      {
         source: "/models/compare",
         destination: "/models/compare",
       },

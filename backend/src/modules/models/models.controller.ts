@@ -183,16 +183,25 @@ export class ModelsController {
       return c.text('Slug is required', 400);
     }
 
-    const prisma = getPrisma(c.env);
-    const service = new ModelsService(prisma);
-
     try {
-      const logo = await service.getLogoBySlug(slug);
-      let svg = logo?.svgContent;
+      let svg: string | null = null;
+      let logoName: string | null = null;
+
+      try {
+        const prisma = getPrisma(c.env);
+        const service = new ModelsService(prisma);
+        const logo = await service.getLogoBySlug(slug);
+        if (logo?.svgContent) {
+          svg = logo.svgContent;
+          logoName = logo.name;
+        }
+      } catch {
+        // Prisma/DB not available in current environment, fall through to embedded dataset
+      }
 
       if (!svg) {
         const slugLower = slug.toLowerCase();
-        svg = EMBEDDED_BRAND_SVGS[slugLower];
+        svg = EMBEDDED_BRAND_SVGS[slugLower] || null;
       }
 
       if (svg) {
@@ -202,7 +211,7 @@ export class ModelsController {
         });
       }
 
-      const initial = (logo?.name || slug).charAt(0).toUpperCase();
+      const initial = (logoName || slug).charAt(0).toUpperCase();
       const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><rect width="100" height="100" rx="20" fill="#18181B"/><text x="50" y="55" fill="#E4E4E7" font-family="sans-serif" font-size="44" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initial}</text></svg>`;
       return c.body(fallbackSvg, 200, {
         'Content-Type': 'image/svg+xml; charset=utf-8',
