@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EMBEDDED_BRAND_SVGS } from "@/lib/brandLogosData";
 
+export const runtime = "edge";
+
 export async function GET(
   _request: NextRequest,
   context: { params: Promise<{ slug: string }> }
